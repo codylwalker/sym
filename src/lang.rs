@@ -14,10 +14,14 @@ pub enum Lang {
     Tsx,
     JavaScript,
     Go,
+    C,
+    Cpp,
+    Java,
+    Ruby,
 }
 
 /// The extension list quoted in error messages.
-pub const EXTENSIONS: &str = "rs/lua/py/ts/tsx/js/jsx/mjs/cjs/go";
+pub const EXTENSIONS: &str = "rs/lua/py/ts/tsx/js/jsx/mjs/cjs/go/c/h/cpp/cc/hpp/java/rb";
 
 pub fn lang_of(path: &Path) -> Option<Lang> {
     match path.extension().and_then(|e| e.to_str())? {
@@ -28,6 +32,10 @@ pub fn lang_of(path: &Path) -> Option<Lang> {
         "tsx" => Some(Lang::Tsx),
         "js" | "jsx" | "mjs" | "cjs" => Some(Lang::JavaScript),
         "go" => Some(Lang::Go),
+        "c" | "h" => Some(Lang::C),
+        "cpp" | "cc" | "cxx" | "hpp" | "hh" | "hxx" => Some(Lang::Cpp),
+        "java" => Some(Lang::Java),
+        "rb" => Some(Lang::Ruby),
         _ => None,
     }
 }
@@ -42,6 +50,10 @@ pub fn parser_for(lang: Lang) -> Result<Parser, String> {
         Lang::Tsx => tree_sitter_typescript::LANGUAGE_TSX.into(),
         Lang::JavaScript => tree_sitter_javascript::LANGUAGE.into(),
         Lang::Go => tree_sitter_go::LANGUAGE.into(),
+        Lang::C => tree_sitter_c::LANGUAGE.into(),
+        Lang::Cpp => tree_sitter_cpp::LANGUAGE.into(),
+        Lang::Java => tree_sitter_java::LANGUAGE.into(),
+        Lang::Ruby => tree_sitter_ruby::LANGUAGE.into(),
     };
     p.set_language(&l)
         .map_err(|e| format!("tree-sitter language init failed: {e}"))?;
@@ -69,7 +81,10 @@ pub fn is_doc_line(lang: Lang, prev: &str) -> bool {
                 || prev.starts_with('*')
                 || prev.starts_with('@')
         }
-        Lang::Go => prev.starts_with("//"),
+        Lang::Go | Lang::C | Lang::Cpp | Lang::Java => {
+            prev.starts_with("//") || prev.starts_with("/*") || prev.starts_with('*') || prev.starts_with('@') || prev.starts_with('#')
+        }
+        Lang::Ruby => prev.starts_with('#'),
     }
 }
 

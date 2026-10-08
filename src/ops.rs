@@ -2,7 +2,8 @@
 //! CLI, MCP and HTTP fronts all call these and choose a rendering.
 
 use crate::extract::{extract_symbols, Symbol};
-use crate::lang::{is_doc_line, is_import_line, lang_of, Lang, EXTENSIONS};
+use crate::lang::{is_doc_line, lang_of, Lang, EXTENSIONS};
+use std::collections::HashMap;
 use serde::Serialize;
 use std::path::{Path, PathBuf};
 
@@ -115,6 +116,11 @@ pub fn read(file: &Path, symbol: &str) -> Result<ReadOut, String> {
     })
 }
 
+fn files_sorted_at(sorted: &[PathBuf], order: &[usize], original: usize) -> PathBuf {
+    let pos = order.iter().position(|&i| i == original).unwrap_or(0);
+    sorted[pos].clone()
+}
+
 pub const SKIP_DIRS: &[&str] = &[
     ".git",
     "target",
@@ -127,6 +133,9 @@ pub const SKIP_DIRS: &[&str] = &[
     "build",
     "vendor",
 ];
+
+/// Top-level signatures shown per file in the map before "… +N more".
+pub const MAP_FILE_CAP: usize = 12;
 
 /// Repo map: per-file top-level signatures, files ranked by import fan-in,
 /// cut at `budget` tokens (chars/4) the way the text rendering counts them.
@@ -151,44 +160,16 @@ pub fn map(dir: &Path, budget: usize) -> Result<MapOut, String> {
         return Err(format!("no {EXTENSIONS} files found"));
     }
 
-    // Fan-in rank: count how often each file's stem appears in other files'
-    // import lines (`use`, `require`, `import`/`from`).
-    let mut fan_in: std::collections::HashMap<PathBuf, usize> = Default::default();
-    let stems: Vec<Option<String>> = files
-        .iter()
-        .map(|f| {
-            f.file_stem()
-                .and_then(|s| s.to_str())
-                .filter(|s| *s != "mod" && *s != "init" && *s != "index")
-                .map(str::to_string)
-        })
-        .collect();
-    for f in &files {
-        let Ok(src) = std::fs::read_to_string(f) else {
-            continue;
-        };
-        for line in src.lines() {
-            let t = line.trim_start();
-            if !is_import_line(t) {
-                continue;
-            }
-            for (other, stem) in files.iter().zip(&stems) {
-                if other == f {
-                    continue;
-                }
-                if let Some(stem) = stem {
-                    if t.contains(stem.as_str()) {
-                        *fan_in.entry(other.clone()).or_default() += 1;
-                    }
-                }
-            }
-        }
-    }
-    files.sort_by(|a, b| {
-        let fa = fan_in.get(a).copied().unwrap_or(0);
-        let fb = fan_in.get(b).copied().unwrap_or(0);
-        fb.cmp(&fa).then_with(|| a.cmp(b))
+    // Rank: resolve imports to files, PageRank the graph (see `rank`).
+    let scores = crate::rank::rank(dir, &files);
+    let mut order: Vec<usize> = (0..files.len()).collect();
+    order.sort_by(|&a, &b| {
+        scores[b].0.partial_cmp(&scores[a].0).unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| scores[b].1.cmp(&scores[a].1))
+            .then_with(|| files[a].cmp(&files[b]))
     });
+    let files: Vec<PathBuf> = order.iter().map(|&i| files[i].clone()).collect();
+    let fan_in: HashMap<PathBuf, usize> = order.iter().map(|&i| (files_sorted_at(&files, &order, i), scores[i].1)).collect();
 
     // Emit per-file skeletons until the budget is exhausted. The budget is
     // measured on the text rendering so `--json` and text agree.
@@ -201,13 +182,19 @@ pub fn map(dir: &Path, budget: usize) -> Result<MapOut, String> {
         let Ok(symbols) = extract_symbols(&src, lang) else {
             continue;
         };
-        let top: Vec<String> = symbols
+        let mut top: Vec<String> = symbols
             .iter()
             .filter(|s| s.depth == 0)
             .map(|s| s.signature.clone())
             .collect();
         if top.is_empty() {
             continue;
+        }
+        // One file must not eat the whole budget: cap its lines and say so.
+        if top.len() > MAP_FILE_CAP {
+            let more = top.len() - MAP_FILE_CAP;
+            top.truncate(MAP_FILE_CAP);
+            top.push(format!("… +{more} more (sym ls for all)"));
         }
         let rel = display(f.strip_prefix(dir).unwrap_or(f));
         let block_len = crate::render::map_block(&rel, &top).len();

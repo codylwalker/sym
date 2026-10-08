@@ -38,3 +38,21 @@ prompt = "In crates/printer/src/standard.rs (3,842 lines), how is the context se
 [[task]]
 id = "gitignore-matched"
 prompt = "In crates/ignore/src/gitignore.rs, how does `Gitignore::matched` decide between Ignore, Whitelist and None, and what does `matched_path_or_any_parents` add on top? Cite lines."
+
+# ── orientation tasks: no keyword to grep for; the map is the natural first move ──
+
+[[task]]
+id = "orient-walker"
+prompt = "You have never seen this repository. Which crate implements the parallel directory walker, which file holds its builder, and what are the builder's public entry points (names only)? Answer from the code's structure, not from docs."
+
+[[task]]
+id = "orient-flag-arch"
+prompt = "Explain how command-line flags are organized across this repository: which files define them, which file converts low-level parsed args into the high-level config, and how a new flag would be added (three files, named). Do not guess from README; find it in the code."
+
+[[task]]
+id = "orient-printer"
+prompt = "List the printer formats this repository supports and name the file and the top-level type that implements each. Then say which shared module the formats depend on."
+
+[[task]]
+id = "orient-tests"
+prompt = "How are integration tests structured in this repository? Name the test helper module, its main type, and three of the test files that use it. Keep the answer to structure, not content."

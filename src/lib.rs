@@ -14,6 +14,7 @@ pub mod hook;
 pub mod lang;
 pub mod mcp;
 pub mod ops;
+pub mod rank;
 pub mod render;
 pub mod serve;
 

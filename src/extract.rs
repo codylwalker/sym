@@ -51,7 +51,7 @@ fn walk(node: Node, src: &str, lang: Lang, prefix: &str, depth: usize, out: &mut
             });
             // Recurse into containers so methods get listed under their
             // impl/class.
-            if matches!(kind, "impl" | "class" | "mod" | "trait") {
+            if matches!(kind, "impl" | "class" | "mod" | "trait" | "namespace" | "module" | "record") {
                 walk(child, src, lang, &path, depth + 1, out);
             }
         } else {
@@ -204,7 +204,52 @@ fn symbol_of(node: Node, src: &str, lang: Lang) -> Option<Found> {
         (Lang::Go, "const_spec") => found("const", field_text(node, "name", src)?),
         (Lang::Go, "var_spec") => found("var", field_text(node, "name", src)?),
 
+        (Lang::C | Lang::Cpp, "function_definition") => found("fn", c_declarator_name(node, src)?),
+        (Lang::C | Lang::Cpp, "struct_specifier") if node.child_by_field_name("body").is_some() => {
+            found("struct", field_text(node, "name", src)?)
+        }
+        (Lang::C | Lang::Cpp, "enum_specifier") if node.child_by_field_name("body").is_some() => {
+            found("enum", field_text(node, "name", src)?)
+        }
+        (Lang::C | Lang::Cpp, "type_definition") => {
+            found("typedef", node.child_by_field_name("declarator").map(|d| node_text(d, src).to_string())?)
+        }
+        (Lang::Cpp, "class_specifier") if node.child_by_field_name("body").is_some() => {
+            found("class", field_text(node, "name", src)?)
+        }
+        (Lang::Cpp, "namespace_definition") => found("namespace", field_text(node, "name", src)?),
+
+        (Lang::Java, "class_declaration") => found("class", field_text(node, "name", src)?),
+        (Lang::Java, "interface_declaration") => found("interface", field_text(node, "name", src)?),
+        (Lang::Java, "enum_declaration") => found("enum", field_text(node, "name", src)?),
+        (Lang::Java, "record_declaration") => found("record", field_text(node, "name", src)?),
+        (Lang::Java, "method_declaration" | "constructor_declaration") => {
+            found("method", field_text(node, "name", src)?)
+        }
+
+        (Lang::Ruby, "class") => found("class", field_text(node, "name", src)?),
+        (Lang::Ruby, "module") => found("module", field_text(node, "name", src)?),
+        (Lang::Ruby, "method") => found("def", field_text(node, "name", src)?),
+        (Lang::Ruby, "singleton_method") => found("def", field_text(node, "name", src).map(|n| format!("self.{n}"))?),
+
         _ => None,
+    }
+}
+
+/// C/C++: the function name sits inside nested declarators (`*name(...)`).
+fn c_declarator_name(node: Node, src: &str) -> Option<String> {
+    let mut d = node.child_by_field_name("declarator")?;
+    loop {
+        match d.kind() {
+            "function_declarator" => d = d.child_by_field_name("declarator")?,
+            "pointer_declarator" | "reference_declarator" | "parenthesized_declarator" => {
+                d = d.child_by_field_name("declarator").or_else(|| d.named_child(0))?
+            }
+            "identifier" | "field_identifier" | "qualified_identifier" | "destructor_name" | "operator_name" => {
+                return Some(node_text(d, src).to_string())
+            }
+            _ => return Some(node_text(d, src).to_string()),
+        }
     }
 }
 
@@ -380,6 +425,22 @@ func (g Generic[T]) Get() T { var z T; return z }
         let serve = syms.iter().find(|s| s.path == "Server.Serve").unwrap();
         assert_eq!(serve.name, "Serve");
         assert_eq!(serve.kind, "method");
+    }
+
+    #[test]
+    fn c_cpp_java_ruby_symbols_extracted() {
+        let c = "struct point { int x; };\ntypedef int num;\nstatic int *alloc(int n) { return 0; }\nint main(void) { return 0; }\n";
+        let n = names(c, Lang::C);
+        for want in ["point", "num", "alloc", "main"] { assert!(n.contains(&want.to_string()), "C missing {want} in {n:?}"); }
+        let cpp = "namespace geo {\nclass Circle { public: double area() const; };\ndouble Circle::area() const { return 1; }\n}\n";
+        let n = names(cpp, Lang::Cpp);
+        for want in ["geo", "geo.Circle", "geo.Circle::area"] { assert!(n.contains(&want.to_string()), "C++ missing {want} in {n:?}"); }
+        let java = "public class App {\n  public App() {}\n  static int run(int a) { return a; }\n  interface Shape { double area(); }\n}\n";
+        let n = names(java, Lang::Java);
+        for want in ["App", "App.App", "App.run", "App.Shape"] { assert!(n.contains(&want.to_string()), "Java missing {want} in {n:?}"); }
+        let rb = "module Util\n  class Box\n    def area\n      1\n    end\n    def self.unit\n      Box.new\n    end\n  end\nend\ndef helper; end\n";
+        let n = names(rb, Lang::Ruby);
+        for want in ["Util", "Util.Box", "Util.Box.area", "Util.Box.self.unit", "helper"] { assert!(n.contains(&want.to_string()), "Ruby missing {want} in {n:?}"); }
     }
 
     #[test]
