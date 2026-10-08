@@ -72,3 +72,21 @@ test('a failing sym binary never blocks a Read', async ($, on) => {
   const r: any = await $.tool.call({ tool: 'Read', file_path: '/repo/src/big.rs' })
   expect(r.result).toBe('the whole file')
 })
+
+test('SYM_INDEX_URL and SYM_INDEX_DIR wire the where tool without plugin config', async ($, on) => {
+  const seen: string[][] = []
+  on('process.run', (_$: any, e: any) => {
+    const argv: readonly string[] = e.argv ?? e.command ?? e.args ?? []
+    seen.push([...argv])
+    return { value: argv[0] === 'sym' ? { exitCode: 0, stdout: '0.9  src/a.rs:1-3  fn  alpha  pub fn alpha()\n', stderr: '' } : { exitCode: 0, stdout: 'abc123\n', stderr: '' } }
+  })
+  on('fs.stat', () => ({ value: { kind: 'file', size: 100, mtimeMs: 0, isLink: false } }))
+  on('fs.exists', () => ({ value: true }))
+  on('env.get', (_$: any, e: any) => ({ value: ({ SYM_INDEX_URL: 'http://embed:8440', SYM_INDEX_DIR: '/idx' } as any)[e.name ?? e.key ?? ''] }))
+  on('session.cwd', () => ({ value: '/repo' }))
+  const r: any = await $.tool.call({ tool: 'mcp__sym__where', query: 'binary detection' } as any)
+  expect(r.result).toContain('alpha')
+  const call = seen.find((a) => a[0] === 'sym' && a[1] === 'where')!
+  expect(call.join(' ')).toContain('--index /idx')
+  expect(call.join(' ')).toContain('--embed-url http://embed:8440')
+})

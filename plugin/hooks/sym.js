@@ -23,6 +23,21 @@ let turn = { skeletons: 0, bytesKept: 0, symbolReads: 0 }
 let total = { skeletons: 0, bytesKept: 0, symbolReads: 0, turns: 0 }
 let repoMap = ''
 let indexDir = ''
+let indexUrl = ''
+let indexModel = ''
+let indexDirOverride = ''
+let envResolved = false
+
+// The plugin config sets the index URL and model for an installed plugin; the
+// environment (SYM_INDEX_URL, SYM_INDEX_MODEL, SYM_INDEX_DIR) covers
+// --plugin-dir runs and the bench. Resolved once, on first use.
+async function resolveEnv($) {
+  if (envResolved) return
+  envResolved = true
+  indexUrl = indexUrl || (await $.env.get('SYM_INDEX_URL')) || ''
+  indexModel = indexModel || (await $.env.get('SYM_INDEX_MODEL')) || ''
+  indexDirOverride = (await $.env.get('SYM_INDEX_DIR')) || ''
+}
 
 function tokens(bytes) {
   return Math.ceil(bytes / 4)
@@ -50,11 +65,15 @@ export function register(on, options) {
   const readMode = (options && options.read_mode) || 'skeleton'
   const minLines = Number((options && options.min_lines) || 200)
   const mapBudget = Number((options && options.map_budget) || 600)
-  const indexUrl = (options && options.index_url) || ''
-  const indexModel = (options && options.index_model) || ''
+  // The plugin config sets these for an installed plugin; the environment
+  // (SYM_INDEX_URL, SYM_INDEX_MODEL, SYM_INDEX_DIR) covers --plugin-dir runs
+  // and the bench, and is resolved once the session starts.
+  indexUrl = (options && options.index_url) || ''
+  indexModel = (options && options.index_model) || ''
 
   on('session.start', async ($, e, next) => {
     const cwd = await $.session.cwd()
+    await resolveEnv($)
     const head = await gitHead($, cwd)
     const key = 'sym.map.' + cwd + '@' + head
     // The repo map, cached per HEAD so prompt.context stays cache-stable.
@@ -93,9 +112,9 @@ export function register(on, options) {
     })
     // The semantic tool only when an index exists for this checkout.
     indexDir = ''
-    const data = await $.env.get('CLAUDE_PLUGIN_DATA')
+    const data = indexDirOverride || (await $.env.get('CLAUDE_PLUGIN_DATA'))
     if (indexUrl && data) {
-      indexDir = data + '/index-' + head.slice(0, 12)
+      indexDir = indexDirOverride || (data + '/index-' + head.slice(0, 12))
       if (!(await $.fs.exists(indexDir + '/meta.json'))) {
         $.ui.status('sym: indexing ' + cwd + ' …')
         const args = ['index', cwd, '--out', indexDir, '--embed-url', indexUrl]
@@ -179,7 +198,11 @@ export function register(on, options) {
     else if (name === 'ls') args = ['ls', e.file]
     else if (name === 'read') args = ['read', e.file, e.symbol]
     else if (name === 'find') args = ['find', e.name, e.dir || cwd].concat(e.prefix ? ['--prefix'] : [])
-    else if (name === 'where') args = ['where', e.query, '--index', indexDir, '--k', String(e.k || 8)].concat(indexUrl ? ['--embed-url', indexUrl] : [])
+    else if (name === 'where') {
+      await resolveEnv($)
+      if (!indexDir && indexDirOverride) indexDir = indexDirOverride
+      args = ['where', e.query, '--index', indexDir, '--k', String(e.k || 8)].concat(indexUrl ? ['--embed-url', indexUrl] : [])
+    }
     else return { result: 'unknown sym tool' }
     const r = await symRun($, args, cwd)
     if (name === 'read' && r.exitCode === 0) turn.symbolReads += 1
@@ -191,11 +214,12 @@ export function register(on, options) {
   })
 
   on('command.run', { command: 'sym-index' }, async ($) => {
+    await resolveEnv($)
     if (!indexUrl) return { text: 'sym: set index_url in the plugin config to enable the semantic index' }
     const cwd = await $.session.cwd()
     const data = await $.env.get('CLAUDE_PLUGIN_DATA')
     const head = await gitHead($, cwd)
-    indexDir = data + '/index-' + head.slice(0, 12)
+    indexDir = indexDirOverride || (data + '/index-' + head.slice(0, 12))
     const args = ['index', cwd, '--out', indexDir, '--embed-url', indexUrl]
     if (indexModel) args.push('--embed-model', indexModel)
     const r = await symRun($, args, cwd)
