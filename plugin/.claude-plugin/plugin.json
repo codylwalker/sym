@@ -5,12 +5,12 @@
   "description": "Symbol-level code reads for coding agents: a skeleton of any source file, one symbol's source with its docs, and a budgeted repo map. Keeps whole files out of context, which keeps prompt caching intact. Rust, Lua, Python, TypeScript, JavaScript, Go.",
   "author": { "name": "Cody Lee Walker", "email": "cody@stardata.foundation", "url": "https://sym.s2ar.dev" },
   "homepage": "https://sym.s2ar.dev",
-  "repository": "https://github.com/stardata-foundation/sym",
+  "repository": "https://github.com/codylwalker/sym",
   "license": "LicenseRef-PolyForm-Shield-1.0.0",
   "keywords": ["tokens", "tree-sitter", "code-reading", "context", "mcp"],
   "icon": "./logo.png",
   "documentationUrl": "https://sym.s2ar.dev/#docs",
-  "supportUrl": "https://github.com/stardata-foundation/sym/issues",
+  "supportUrl": "https://github.com/codylwalker/sym/issues",
   "privacyPolicyUrl": "https://sym.s2ar.dev/privacy",
   "termsOfServiceUrl": "https://sym.s2ar.dev/terms"
 }

@@ -9,7 +9,7 @@ Operated by Stardata (Cody Lee Walker, Canada). Contact: cody@stardata.foundatio
 - Install: `cargo install sym-cli` (binary `sym`).
 - CLI: `sym ls <file>`, `sym read <file> <symbol>`, `sym map <dir> --budget N`; `--json`, `--est`.
 - MCP over stdio: `{"command":"sym","args":["mcp"]}` → tools `sym_ls`, `sym_read`, `sym_map`.
-- Claude Code plugin: `claude plugin marketplace add https://github.com/stardata-foundation/sym` then `claude plugin install sym@sym`.
+- Claude Code plugin: `claude plugin marketplace add https://github.com/codylwalker/sym` then `claude plugin install sym@sym`.
 
 ## Hosted (paid per call)
 
@@ -28,6 +28,6 @@ Operated by Stardata (Cody Lee Walker, Canada). Contact: cody@stardata.foundatio
 ## Links
 
 - Site: https://sym.s2ar.dev
-- Source: https://github.com/stardata-foundation/sym
+- Source: https://github.com/codylwalker/sym
 - Privacy: https://sym.s2ar.dev/privacy.html · Terms: https://sym.s2ar.dev/terms.html
-- Bench method: https://github.com/stardata-foundation/sym/tree/main/bench
+- Bench method: https://github.com/codylwalker/sym/tree/main/bench

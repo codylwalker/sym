@@ -49,7 +49,7 @@ candidates.
 **Claude Code plugin** (skill + MCP server + a hook that nudges big Reads):
 
 ```
-claude plugin marketplace add https://github.com/stardata-foundation/sym
+claude plugin marketplace add https://github.com/codylwalker/sym
 claude plugin install sym@sym
 ```
 
