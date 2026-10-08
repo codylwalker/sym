@@ -107,16 +107,16 @@ WWW-Authenticate: Payment …                 <i># Stripe Machine Payments Proto
     <tr><th>rail</th><th>who pays</th><th>autonomy</th><th>minimum</th></tr>
     <tr><td class="mono">Authorization: Bearer sk-…</td><td>a human bought credits once</td><td>full, after the first purchase</td><td>$5 pack</td></tr>
     <tr><td class="mono">X-PAYMENT (x402)</td><td>the agent's USDC wallet on Base</td><td>full</td><td>$0.005</td></tr>
-    <tr><td class="mono">Authorization: Payment (MPP, Tempo)</td><td>the agent's USDC wallet on Tempo, settled by Stripe</td><td>full</td><td>$0.01</td></tr>
-    <tr><td class="mono">Authorization: Payment (MPP, card)</td><td>the human's card through the Link agent wallet</td><td>one approval tap per spend, by Link's design</td><td>$0.50</td></tr>
+    <tr><td class="mono">Authorization: Payment (MPP, card) → <code>/v1/credits/buy</code></td><td>the human's card through the Link agent wallet; buys a $5/$25/$100 pack and returns a key</td><td>one approval tap per pack, by Link's design; then full</td><td>$5 pack (cards need $0.50+, a call costs cents)</td></tr>
+    <tr><td class="mono">Authorization: Payment (MPP, Tempo)</td><td>the agent's USDC wallet on Tempo, settled by Stripe</td><td>full</td><td>$0.01 · when Stripe's crypto capability is enabled on our account (not yet)</td></tr>
   </table>
-  <p class="note">The agent-side skill for cards is <code>npx skills add stripe/link-cli</code>. Test mode works end to end with a sandbox key. Nothing is charged for a failed request.</p>
+  <p class="note">The agent-side skill for cards is <code>npx skills add stripe/link-cli</code>: it answers the 402 on <code>/v1/credits/buy</code>, and the key in the response pays for every call after that. Nothing is charged for a failed request.</p>
 </section>
 
 <section id="measured">
   <div class="eyebrow">measured, not claimed</div>
   <h2>Session cost, cache reads billed.</h2>
-  <p class="lead">Token-reduction numbers measured on one payload say little about what a session costs; several context compressors cost more than running nothing once caching is counted. So the number on this page is the median cost of a fixed task list run as fresh sessions with and without the plugin, on a pinned public repo, cache reads billed, losses included.</p>
+  <p class="lead">Token-reduction numbers measured on one payload say little about what a session costs; several context compressors cost more than running nothing once caching is counted. So the number on this page is the median cost of a fixed task list run as fresh sessions with and without the plugin, on a pinned public repo, cache reads billed, losses included. The first full run says something we did not expect and will not hide: Claude Code already avoids whole-file reads on its own (it greps, then reads a range), so on file-anchored questions the plugin is close to a wash and the agent reached for sym in one session out of twenty-four. Where sym earns its keep is orientation (<code>map</code>), agents without grep or ranged reads (the hosted tier), and the measurement itself.</p>
   <div id="benchTable">/*__BENCH__*/</div>
   <p class="note">The harness is <code>bench/run.py</code> in the repo. Run it on your own repo; the table above regenerates from <code>bench/results/latest.json</code>.</p>
 </section>
