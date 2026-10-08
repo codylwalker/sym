@@ -57,12 +57,21 @@ claude plugin marketplace add https://github.com/codylwalker/sym
 claude plugin install sym@sym
 ```
 
+**Code by meaning, locally.** `sym index <dir> --out <idx> --embed-url <base>`
+embeds every definition (long ones in windows) through any OpenAI-shaped
+`/v1/embeddings` endpoint and `sym where "<question>" --index <idx>` ranks
+them by cosine plus a name match; test code is demoted. We run a small ONNX
+service for it (Qwen3-Embedding-0.6B); any endpoint works. The plugin's
+`index_url` / `index_model` config (or `SYM_INDEX_URL`, `SYM_INDEX_MODEL`,
+`SYM_INDEX_DIR` in the environment) turns on the `where` tool and the
+`/sym-index` command; the index is rebuilt in the background per HEAD.
+
 **MCP** (any client): `{"command": "sym", "args": ["mcp"]}` exposes
 `sym_ls`, `sym_read`, `sym_map` over stdio.
 
 **HTTP** (for a gateway): `sym serve --port 8431 --root <dir>` answers
-`POST /ls`, `/read`, `/map` and `GET /healthz` on loopback, every path jailed
-under `--root`.
+`POST /ls`, `/read`, `/find`, `/map`, `/where` and `GET /healthz` on loopback,
+every path jailed under `--root`.
 
 **Hook**: `sym hook pre` reads a Claude Code PreToolUse payload on stdin and,
 for a `Read` of a supported file over 200 lines, returns `additionalContext`

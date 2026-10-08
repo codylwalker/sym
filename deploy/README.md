@@ -15,6 +15,16 @@ Three processes, all loopback except the public Caddy vhost:
    `/etc/starlens-mpp.env` with `STRIPE_SECRET_KEY`, `STRIPE_PROFILE_ID`, optional
    `TEMPO_DEPOSIT_ADDRESS`. Sandbox first (`sk_test_`, `profile_test_`).
 
+4. The embedder behind `/v1/sym/where` (`rust-shared/staros-embed`, unit
+   `staros-embed/deploy/staros-embed.service`): on work1 it runs on the CPU with
+   the int8 Qwen3-Embedding-0.6B export (`~/models/qwen3-embed-0.6b`), loading an
+   official ONNX Runtime wheel through `ORT_DYLIB_PATH` (the crate's
+   `dynamic-cpu` feature; pyke's downloaded binaries want a newer glibc than
+   Debian 12 has). Loopback `:8440`; `STARLENS_EMBED_URL=http://127.0.0.1:8440`
+   in `/etc/starlens.env`. ~0.8 s per 450-token chunk, so a repository the size
+   of ripgrep (3.7k chunks) indexes in about 50 minutes the first time; the
+   first `where` call answers 202 until then and nothing is charged.
+
 Caddy: `starlens/deploy/sites/sym.caddyfile` → `/etc/caddy/sites/`, then
 `systemctl reload caddy`. DNS: `s2ar.dev/sym` A record to the box. Site files:
 `tools/deploy_site.py` scp's `site/` to `/srv/stardata/site/sym/`.
