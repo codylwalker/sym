@@ -27,6 +27,19 @@ pub enum SymCmd {
         #[arg(long)]
         est: bool,
     },
+    /// Definitions named NAME anywhere under DIR (leaf or qualified path)
+    Find {
+        name: String,
+        #[arg(default_value = ".")]
+        dir: PathBuf,
+        /// Match names that start with NAME
+        #[arg(long)]
+        prefix: bool,
+        #[arg(long)]
+        json: bool,
+        #[arg(long)]
+        est: bool,
+    },
     /// Budgeted repo map: per-file signatures, ranked by import fan-in
     Map {
         dir: PathBuf,
@@ -55,6 +68,16 @@ pub fn run_to_string(cmd: SymCmd) -> Result<String, String> {
         } => {
             let out = ops::read(&file, &symbol)?;
             finish(render::read_text(&out), &out, json, est)
+        }
+        SymCmd::Find {
+            name,
+            dir,
+            prefix,
+            json,
+            est,
+        } => {
+            let out = ops::find(&dir, &name, prefix)?;
+            finish(render::find_text(&out), &out, json, est)
         }
         SymCmd::Map {
             dir,

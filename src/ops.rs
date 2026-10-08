@@ -121,6 +121,61 @@ fn files_sorted_at(sorted: &[PathBuf], order: &[usize], original: usize) -> Path
     sorted[pos].clone()
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub struct FindHit {
+    pub path: String,
+    pub symbol: Symbol,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct FindOut {
+    pub dir: String,
+    pub name: String,
+    pub prefix: bool,
+    pub hits: Vec<FindHit>,
+    pub files_scanned: usize,
+}
+
+/// Definitions by name across a tree: every symbol whose leaf name or
+/// qualified path equals `name` (or starts with it under `prefix`). What
+/// grep cannot do: definitions only, with kind and qualified path.
+pub fn find(dir: &Path, name: &str, prefix: bool) -> Result<FindOut, String> {
+    if !dir.is_dir() {
+        return Err(format!("not a directory: {}", display(dir)));
+    }
+    let mut hits = Vec::new();
+    let mut scanned = 0usize;
+    for entry in walkdir::WalkDir::new(dir)
+        .into_iter()
+        .filter_entry(|e| {
+            !(e.file_type().is_dir()
+                && SKIP_DIRS.contains(&e.file_name().to_string_lossy().as_ref()))
+        })
+        .filter_map(Result::ok)
+    {
+        let p = entry.path();
+        if !entry.file_type().is_file() || lang_of(p).is_none() {
+            continue;
+        }
+        let Ok((src, lang)) = load(p) else { continue };
+        let Ok(symbols) = extract_symbols(&src, lang) else { continue };
+        scanned += 1;
+        let rel = display(p.strip_prefix(dir).unwrap_or(p));
+        for s in symbols {
+            let hit = if prefix {
+                s.name.starts_with(name) || s.path.starts_with(name)
+            } else {
+                s.name == name || s.path == name
+            };
+            if hit {
+                hits.push(FindHit { path: rel.clone(), symbol: s });
+            }
+        }
+    }
+    hits.sort_by(|a, b| a.path.cmp(&b.path).then(a.symbol.start_line.cmp(&b.symbol.start_line)));
+    Ok(FindOut { dir: display(dir), name: name.to_string(), prefix, hits, files_scanned: scanned })
+}
+
 pub const SKIP_DIRS: &[&str] = &[
     ".git",
     "target",
@@ -239,6 +294,20 @@ mod tests {
         assert_eq!(out.start_line, 5);
         let err = read(&f, "zz").unwrap_err();
         assert!(err.contains("Available: a, X, X::a"), "{err}");
+    }
+
+    #[test]
+    fn find_returns_definitions_by_leaf_or_path() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("a.rs"), "pub fn run() {}\nimpl X { fn run(&self) {} }\n").unwrap();
+        std::fs::write(dir.path().join("b.py"), "def run():\n    pass\ndef runner():\n    pass\n").unwrap();
+        let out = find(dir.path(), "run", false).unwrap();
+        assert_eq!(out.hits.len(), 3, "{:?}", out.hits.iter().map(|h| &h.symbol.path).collect::<Vec<_>>());
+        let out = find(dir.path(), "X::run", false).unwrap();
+        assert_eq!(out.hits.len(), 1);
+        let out = find(dir.path(), "run", true).unwrap();
+        assert_eq!(out.hits.len(), 4);
+        assert_eq!(out.files_scanned, 2);
     }
 
     #[test]

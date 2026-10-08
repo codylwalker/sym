@@ -1,7 +1,7 @@
 //! Text renderings. These are byte-for-byte what `staros sym` printed, so
 //! agents and docs that learned the old shape keep working.
 
-use crate::ops::{LsOut, MapOut, ReadOut};
+use crate::ops::{FindOut, LsOut, MapOut, ReadOut};
 use std::fmt::Write as _;
 
 pub fn ls_text(o: &LsOut) -> String {
@@ -60,4 +60,19 @@ pub fn with_est(mut text: String) -> String {
     let n = crate::tokens_est(text.len());
     let _ = writeln!(text, "~{n} tokens");
     text
+}
+
+pub fn find_text(o: &FindOut) -> String {
+    if o.hits.is_empty() {
+        return format!("no definition named {:?} in {} ({} files)\n", o.name, o.dir, o.files_scanned);
+    }
+    let mut s = String::new();
+    for h in &o.hits {
+        let _ = writeln!(
+            s,
+            "{}:{}-{}  {}  {}  {}",
+            h.path, h.symbol.start_line, h.symbol.end_line, h.symbol.kind, h.symbol.path, h.symbol.signature
+        );
+    }
+    s
 }

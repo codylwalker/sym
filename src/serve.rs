@@ -51,7 +51,7 @@ pub fn handle(method: &str, url: &str, body: &str, root: Option<&Path>) -> (u16,
         return (200, json!({"ok": true, "service": "sym", "version": env!("CARGO_PKG_VERSION")}).to_string());
     }
     if method != "POST" {
-        return (405, json!({"ok": false, "error": "POST /ls, /read, /map or GET /healthz"}).to_string());
+        return (405, json!({"ok": false, "error": "POST /ls, /read, /find, /map or GET /healthz"}).to_string());
     }
     let args: Value = match serde_json::from_str(if body.is_empty() { "{}" } else { body }) {
         Ok(v) => v,
@@ -69,6 +69,13 @@ pub fn handle(method: &str, url: &str, body: &str, root: Option<&Path>) -> (u16,
             let f = jail(root, s("file").ok_or("needs `file`")?)?;
             let o = ops::read(&f, s("symbol").ok_or("needs `symbol`")?)?;
             Ok((render::read_text(&o), serde_json::to_value(&o).map_err(|e| e.to_string())?))
+        }
+        "/find" => {
+            let d = jail(root, s("dir").ok_or("needs `dir`")?)?;
+            let name = s("name").ok_or("needs `name`")?;
+            let prefix = args.get("prefix").and_then(Value::as_bool).unwrap_or(false);
+            let o = ops::find(&d, name, prefix)?;
+            Ok((render::find_text(&o), serde_json::to_value(&o).map_err(|e| e.to_string())?))
         }
         "/map" => {
             let d = jail(root, s("dir").ok_or("needs `dir`")?)?;

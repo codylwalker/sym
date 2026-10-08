@@ -114,6 +114,16 @@ pub fn tool_defs() -> Value {
             }), &["file", "symbol"]),
         },
         {
+            "name": "sym_find",
+            "description": "Definitions by name across a directory tree: every symbol whose leaf name or qualified path equals `name` (or starts with it when `prefix` is true), with kind, qualified path, file and line range. Grep finds mentions; this finds the definition.",
+            "inputSchema": obj_schema(json!({
+                "name": { "type": "string" },
+                "dir": { "type": "string", "description": "Directory to search (default: current)." },
+                "prefix": { "type": "boolean" },
+                "json": json_flag,
+            }), &["name"]),
+        },
+        {
             "name": "sym_map",
             "description": "Repo map fitted to a token budget: per-file top-level signatures, files ranked by how often others import them. Use it to orient in an unfamiliar directory instead of listing and reading files.",
             "inputSchema": obj_schema(json!({
@@ -140,6 +150,15 @@ fn handle_tool_call(id: Option<Value>, params: &Value) -> Value {
             (Some(f), Some(s)) => ops::read(Path::new(&f), &s)
                 .and_then(|o| cli::finish(render::read_text(&o), &o, json_out, false)),
             _ => Err("sym_read needs `file` and `symbol`".into()),
+        },
+        "sym_find" => match str_arg("name") {
+            Some(n) => {
+                let dir = str_arg("dir").unwrap_or_else(|| ".".into());
+                let prefix = args.get("prefix").and_then(Value::as_bool).unwrap_or(false);
+                ops::find(Path::new(&dir), &n, prefix)
+                    .and_then(|o| cli::finish(render::find_text(&o), &o, json_out, false))
+            }
+            None => Err("sym_find needs `name`".into()),
         },
         "sym_map" => match str_arg("dir") {
             Some(d) => {
@@ -172,7 +191,7 @@ mod tests {
         assert_eq!(r["result"]["serverInfo"]["name"], "sym");
         let r = call(r#"{"jsonrpc":"2.0","id":2,"method":"tools/list"}"#).unwrap();
         let tools = r["result"]["tools"].as_array().unwrap();
-        assert_eq!(tools.len(), 3);
+        assert_eq!(tools.len(), 4);
         for t in tools {
             assert!(t["description"].as_str().unwrap().len() > 40);
             assert_eq!(t["inputSchema"]["type"], "object");
