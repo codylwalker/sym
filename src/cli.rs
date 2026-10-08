@@ -40,6 +40,39 @@ pub enum SymCmd {
         #[arg(long)]
         est: bool,
     },
+    /// Every symbol under DIR as an embedding chunk (NDJSON)
+    Chunks { dir: PathBuf },
+    /// Build or refresh the semantic index of DIR at OUT (embeds new chunks when --embed-url is set)
+    Index {
+        dir: PathBuf,
+        #[arg(long)]
+        out: PathBuf,
+        /// OpenAI-compatible embeddings base URL (http://host:port[/v1])
+        #[arg(long)]
+        embed_url: Option<String>,
+        #[arg(long, default_value = "")]
+        embed_model: String,
+        #[arg(long, default_value_t = 32)]
+        batch: usize,
+    },
+    /// Code by meaning: the chunks closest to QUERY in an index built by `sym index`
+    Where {
+        query: String,
+        #[arg(long)]
+        index: PathBuf,
+        #[arg(long, default_value_t = 8)]
+        k: usize,
+        /// Embeddings base URL for the query (default: the one the index recorded)
+        #[arg(long)]
+        embed_url: Option<String>,
+        #[arg(long, default_value = "")]
+        embed_model: String,
+        /// Add a small boost for query words found in the symbol's path or signature
+        #[arg(long)]
+        hybrid: bool,
+        #[arg(long)]
+        json: bool,
+    },
     /// Budgeted repo map: per-file signatures, ranked by import fan-in
     Map {
         dir: PathBuf,
@@ -78,6 +111,28 @@ pub fn run_to_string(cmd: SymCmd) -> Result<String, String> {
         } => {
             let out = ops::find(&dir, &name, prefix)?;
             finish(render::find_text(&out), &out, json, est)
+        }
+        SymCmd::Chunks { dir } => {
+            let cs = crate::index::chunks(&dir)?;
+            let mut s = String::new();
+            for c in cs {
+                s.push_str(&serde_json::to_string(&c).map_err(|e| e.to_string())?);
+                s.push('\n');
+            }
+            Ok(s)
+        }
+        SymCmd::Index { dir, out, embed_url, embed_model, batch } => {
+            let embed = embed_url.as_deref().map(|u| (u, embed_model.as_str()));
+            let r = crate::index::build(&dir, &out, embed, batch)?;
+            Ok(format!(
+                "indexed {} ({} files): {} chunks, {} embedded, {} reused → {}\n",
+                crate::ops::display(&dir), r.files, r.chunks, r.embedded, r.reused, crate::ops::display(&out)
+            ))
+        }
+        SymCmd::Where { query, index, k, embed_url, embed_model, hybrid, json, .. } => {
+            let embed = embed_url.as_deref().map(|u| (u, embed_model.as_str()));
+            let out = crate::index::find_where(&index, &query, k, embed, hybrid)?;
+            finish(crate::index::where_text(&out), &out, json, false)
         }
         SymCmd::Map {
             dir,

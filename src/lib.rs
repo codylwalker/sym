@@ -9,7 +9,9 @@
 //! place, which is what keeps provider prompt caching intact.
 
 pub mod cli;
+pub mod embed;
 pub mod extract;
+pub mod index;
 pub mod hook;
 pub mod lang;
 pub mod mcp;
