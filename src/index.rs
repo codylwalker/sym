@@ -221,6 +221,10 @@ pub fn find_where(index: &Path, query: &str, k: usize, embed: Option<(&str, &str
                 let hits = words.iter().filter(|w| hay.contains(w.as_str())).count();
                 dot += 0.05 * hits as f32;
             }
+            // Test code answers "where is X" less often than the code under test.
+            if crate::rank::is_test_path(Path::new(&chunks[i].file)) || chunks[i].path.starts_with("tests::") || chunks[i].path.contains("::tests::") {
+                dot -= 0.04;
+            }
             (dot, i)
         })
         .collect();
@@ -282,11 +286,13 @@ mod tests {
         let r = build(dir.path(), out.path(), Some((&url, "fake")), 8).unwrap();
         assert_eq!((r.chunks, r.embedded, r.reused), (2, 2, 0));
         // A second build with one new symbol embeds only that one.
-        std::fs::write(dir.path().join("b.rs"), "pub fn glob_match() {}\n").unwrap();
+        std::fs::write(dir.path().join("b.rs"), "pub fn glob_match() {}\n#[cfg(test)]\nmod tests { fn glob_pattern_parsing() {} }\n").unwrap();
         let r = build(dir.path(), out.path(), Some((&url, "fake")), 8).unwrap();
-        assert_eq!((r.chunks, r.embedded, r.reused), (3, 1, 2));
-        let w = find_where(out.path(), "glob pattern parsing", 2, None, true).unwrap();
-        assert!(w.hits[0].chunk.path.contains("glob"), "{:?}", w.hits.iter().map(|h| &h.chunk.path).collect::<Vec<_>>());
+        assert_eq!((r.chunks, r.embedded, r.reused), (5, 3, 2));
+        let w = find_where(out.path(), "glob pattern parsing", 3, None, true).unwrap();
+        let paths: Vec<&str> = w.hits.iter().map(|h| h.chunk.path.as_str()).collect();
+        assert!(paths[0].contains("glob"), "{paths:?}");
+        assert_ne!(paths[0], "tests::glob_pattern_parsing", "test code is demoted: {paths:?}");
         let text = where_text(&w);
         assert!(text.contains("a.py:1-2") || text.contains("b.rs:1-1"), "{text}");
         let _ = crate::embed::embed(&url, "fake", &["STOP".to_string()]);
