@@ -34,8 +34,10 @@ test('a whole-file Read of a big source file comes back as the skeleton', async 
   on('tool.call', () => { ran = true; return { result: 'the whole file' } })
   const r: any = await $.tool.call({ tool: 'Read', file_path: '/repo/src/big.rs' })
   expect(ran).toBe(false)
-  expect(r.result).toContain('pub fn alpha()')
-  expect(r.result).toContain('[sym] Whole file not loaded (900 lines')
+  expect(r.result.type).toBe('text')
+  expect(r.result.file.totalLines).toBe(900)
+  expect(r.result.file.content).toContain('pub fn alpha()')
+  expect(r.result.file.content).toContain('[sym] Whole file not loaded (900 lines')
 })
 
 test('ranged, small and non-source Reads pass through untouched', async ($, on) => {

@@ -69,21 +69,25 @@ export function register(on, options) {
     // Tools for Claude. Each handler shells to sym and returns its text.
     await $.tool.register({
       name: 'map',
+      isDeferred: false,
       description: 'Repo map fitted to a token budget: per-file top-level signatures, files ranked by PageRank over the import graph. Orientation before reading anything.',
       inputSchema: { type: 'object', properties: { dir: { type: 'string' }, budget: { type: 'integer' } }, required: [] },
     })
     await $.tool.register({
       name: 'ls',
+      isDeferred: false,
       description: 'Skeleton of one source file: every symbol with its line range and signature (rs/lua/py/ts/js/go/c/cpp/java/rb). Use before any Read of a big file.',
       inputSchema: { type: 'object', properties: { file: { type: 'string' } }, required: ['file'] },
     })
     await $.tool.register({
       name: 'read',
+      isDeferred: false,
       description: 'One symbol\'s source, line-numbered, with its doc block. `symbol` is the leaf name or the qualified path from ls (Widget::new, Runner.helper, Server.Serve).',
       inputSchema: { type: 'object', properties: { file: { type: 'string' }, symbol: { type: 'string' } }, required: ['file', 'symbol'] },
     })
     await $.tool.register({
       name: 'find',
+      isDeferred: false,
       description: 'Definitions by name across the tree: every symbol whose leaf name or qualified path equals `name` (or starts with it when prefix is true). Grep finds mentions; this finds the definition.',
       inputSchema: { type: 'object', properties: { name: { type: 'string' }, dir: { type: 'string' }, prefix: { type: 'boolean' } }, required: ['name'] },
     })
@@ -154,12 +158,17 @@ export function register(on, options) {
     const note = '\n[sym] Whole file not loaded (' + info.lines + ' lines, ~' + tokens(bytes) + ' tokens). Read with offset/limit for a range, or the sym read tool for one symbol.\n'
     if (readMode === 'hint') {
       const r = await next(e)
-      if (r && typeof r.result === 'string') return { ...r, result: r.result + note + skeleton }
+      const f = r && r.result && r.result.file
+      if (f && typeof f.content === 'string') {
+        return { ...r, result: { ...r.result, file: { ...f, content: f.content + note + skeleton } } }
+      }
       return r
     }
     turn.skeletons += 1
     turn.bytesKept += Math.max(0, bytes - skeleton.length)
-    return { result: skeleton + note }
+    // A synthetic Read result must match Read's own output shape.
+    const content = skeleton + note
+    return { result: { type: 'text', file: { filePath: path, content, numLines: content.split('\n').length, startLine: 1, totalLines: info.lines } } }
   }).catch(async ($, e, next) => next(e))
 
   on('tool.call', { tool: /^mcp__sym__(map|ls|read|find|where)$/ }, async ($, e) => {
