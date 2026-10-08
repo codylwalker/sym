@@ -46,7 +46,11 @@ candidates.
 
 ## For agents
 
-**Claude Code plugin** (skill + MCP server + a hook that nudges big Reads):
+**Claude Code plugin**: on 2.1.287+ it is a mod. A whole-file Read of a big
+source file comes back as the skeleton (no wasted turn), the repo map arrives
+with the first message, `map`/`ls`/`read`/`find` are tools, and a line under
+each answer says what stayed out of context. Older clients get a hint hook.
+Tested with Claude Code 2.1.294.
 
 ```
 claude plugin marketplace add https://github.com/codylwalker/sym

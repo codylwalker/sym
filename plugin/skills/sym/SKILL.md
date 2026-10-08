@@ -27,8 +27,13 @@ Add `--json` for structured output, `--est` for a token estimate line.
 3. Only if you need a region no symbol covers, use Read with `offset`/`limit`
    from the ranges `ls` printed. Never a bare whole-file Read of a big file.
 
-When this plugin's MCP server is connected the same verbs are tools:
-`sym_ls`, `sym_read`, `sym_map` (same arguments; `json: true` for structured).
+On Claude Code 2.1.287+ this plugin is a mod: a whole-file Read of a source
+file over 200 lines comes back as its skeleton (no turn wasted; set
+`read_mode` to `hint` or `off` in the plugin config to change that), the repo
+map arrives with your first message, and `map`, `ls`, `read`, `find` (and
+`where`, code by meaning, when an embeddings endpoint is configured) are
+tools. `/sym-stats` shows what was kept out of context; `/sym-index` rebuilds
+the semantic index. Older clients get the classic hint hook.
 
 ## Install
 

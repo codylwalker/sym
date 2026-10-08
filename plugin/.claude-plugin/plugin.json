@@ -1,16 +1,65 @@
 {
   "name": "sym",
-  "displayName": "sym — read the function, not the file",
+  "displayName": "sym \u2014 read the function, not the file",
   "version": "0.3.0",
-  "description": "Symbol-level code reads for coding agents: a skeleton of any source file, one symbol's source with its docs, and a budgeted repo map. Keeps whole files out of context, which keeps prompt caching intact. Rust, Lua, Python, TypeScript, JavaScript, Go, C, C++, Java, Ruby.",
-  "author": { "name": "Cody Lee Walker", "email": "cody@stardata.foundation", "url": "https://s2ar.dev/sym/" },
+  "description": "Read the function, not the file. A mod: whole-file Reads of big source files come back as symbol skeletons, the repo map arrives with your first message, and map/ls/read/find (and a semantic where) are tools. Rust, Lua, Python, TypeScript, JavaScript, Go, C, C++, Java, Ruby. Needs the sym binary (cargo install sym-cli) and Claude Code 2.1.287+ for the mod; older clients get the classic hint hook.",
+  "author": {
+    "name": "Cody Lee Walker",
+    "email": "cody@stardata.foundation",
+    "url": "https://s2ar.dev/sym/"
+  },
   "homepage": "https://s2ar.dev/sym/",
   "repository": "https://github.com/codylwalker/sym",
   "license": "LicenseRef-PolyForm-Shield-1.0.0",
-  "keywords": ["tokens", "tree-sitter", "code-reading", "context", "mcp"],
+  "keywords": [
+    "tokens",
+    "tree-sitter",
+    "code-reading",
+    "context",
+    "mcp"
+  ],
   "icon": "./logo.png",
   "documentationUrl": "https://s2ar.dev/sym/#docs",
   "supportUrl": "https://github.com/codylwalker/sym/issues",
   "privacyPolicyUrl": "https://s2ar.dev/sym/privacy.html",
-  "termsOfServiceUrl": "https://s2ar.dev/sym/terms.html"
+  "termsOfServiceUrl": "https://s2ar.dev/sym/terms.html",
+  "userConfig": {
+    "read_mode": {
+      "type": "string",
+      "title": "Read mode",
+      "description": "What happens when Claude Reads a whole source file over min_lines: skeleton (answer with the symbol skeleton), hint (let it through and append the skeleton), or off.",
+      "options": [
+        "skeleton",
+        "hint",
+        "off"
+      ],
+      "default": "skeleton"
+    },
+    "min_lines": {
+      "type": "number",
+      "title": "Minimum lines",
+      "description": "Source files with more lines than this come back as a skeleton.",
+      "default": 200,
+      "min": 20,
+      "max": 100000
+    },
+    "map_budget": {
+      "type": "number",
+      "title": "Repo map budget",
+      "description": "Approximate tokens for the repo map sent with the first message.",
+      "default": 600,
+      "min": 0,
+      "max": 4000
+    },
+    "index_url": {
+      "type": "string",
+      "title": "Embeddings endpoint",
+      "description": "An OpenAI-compatible base URL whose /v1/embeddings embeds code (e.g. http://127.0.0.1:8440). Empty disables the semantic `where` tool."
+    },
+    "index_model": {
+      "type": "string",
+      "title": "Embedding model",
+      "description": "Model name sent to the embeddings endpoint (optional)."
+    }
+  }
 }

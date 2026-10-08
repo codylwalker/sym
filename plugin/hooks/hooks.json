@@ -1,4 +1,6 @@
 {
+  "description": "sym: the mod (Claude Code 2.1.287+) and the classic hook for older clients",
+  "modules": ["./sym.js"],
   "hooks": {
     "PreToolUse": [
       {
