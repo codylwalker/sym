@@ -36,5 +36,7 @@ When this plugin's MCP server is connected the same verbs are tools:
 cargo install sym-cli          # the binary is `sym`
 ```
 
-The plugin's hook will remind you when a Read is about to pull a big source
-file; it stays silent when `sym` is not installed.
+The plugin's hook speaks up when a Read is about to pull a big source file.
+By default it adds a hint; set `SYM_HOOK_MODE=deny` in your environment to
+have it refuse the whole-file Read instead (ranged Reads, `sym ls` and
+`sym read` still work). It stays silent when `sym` is not installed.

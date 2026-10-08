@@ -6,8 +6,32 @@ use crate::lang::lang_of;
 use serde_json::{json, Value};
 use std::path::Path;
 
+/// How the hook speaks: `Hint` adds context and lets the Read proceed;
+/// `Deny` refuses a whole-file Read of a big source file (a ranged Read, a
+/// `sym ls` or a `sym read` all still work), which is what actually changes
+/// an agent's habit — the hint alone measured as ignored.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Mode {
+    Hint,
+    Deny,
+}
+
+impl Mode {
+    pub fn parse(s: &str) -> Mode {
+        if s.eq_ignore_ascii_case("deny") {
+            Mode::Deny
+        } else {
+            Mode::Hint
+        }
+    }
+}
+
 /// `input` is the hook's stdin JSON. Returns the JSON to print, or None.
 pub fn pre_read(input: &str, min_lines: usize) -> Option<String> {
+    pre_read_mode(input, min_lines, Mode::Hint)
+}
+
+pub fn pre_read_mode(input: &str, min_lines: usize, mode: Mode) -> Option<String> {
     let v: Value = serde_json::from_str(input).ok()?;
     if v.get("tool_name").and_then(Value::as_str) != Some("Read") {
         return None;
@@ -28,15 +52,25 @@ pub fn pre_read(input: &str, min_lines: usize) -> Option<String> {
     let tokens = crate::tokens_est(src.len());
     let shown = crate::ops::display(p);
     let msg = format!(
-        "{shown} is {lines} lines (~{tokens} tokens). Prefer `sym ls {shown}` for the skeleton \
-         and `sym read {shown} <symbol>` for one symbol, or Read with offset/limit from the ranges."
+        "{shown} is {lines} lines (~{tokens} tokens): do not read it whole. First run `sym ls {shown}` \
+         (Bash) or the sym_ls tool to get the symbols and their line ranges; then `sym read {shown} <symbol>` \
+         / sym_read for the one you need, or Read with offset/limit taken from those ranges."
     );
-    let out = json!({
-        "hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
-            "additionalContext": msg,
-        }
-    });
+    let out = match mode {
+        Mode::Hint => json!({
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "additionalContext": msg,
+            }
+        }),
+        Mode::Deny => json!({
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason": format!("Whole-file Read refused by sym: {msg}"),
+            }
+        }),
+    };
     Some(format!("{out}\n"))
 }
 
@@ -62,6 +96,12 @@ mod tests {
         let out = pre_read(&input(&big, ""), 200).unwrap();
         assert!(out.contains("hookSpecificOutput"));
         assert!(out.contains("sym ls"));
+        assert!(!out.contains("permissionDecision"));
+        let out = pre_read_mode(&input(&big, ""), 200, Mode::Deny).unwrap();
+        assert!(out.contains("\"permissionDecision\":\"deny\""), "{out}");
+        assert!(pre_read_mode(&input(&big, r#","offset":10"#), 200, Mode::Deny).is_none());
+        assert_eq!(Mode::parse("DENY"), Mode::Deny);
+        assert_eq!(Mode::parse("anything"), Mode::Hint);
         assert!(pre_read(&input(&small, ""), 200).is_none());
         assert!(pre_read(&input(&big, r#","offset":10"#), 200).is_none());
         let other = format!(r#"{{"tool_name":"Bash","tool_input":{{"command":"cat {big}"}}}}"#);

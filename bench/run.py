@@ -29,7 +29,9 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PLUGIN = os.path.join(os.path.dirname(HERE), "plugin")
-CHECKOUTS = os.path.join(HERE, "checkouts")
+# Checkouts live OUTSIDE the monorepo so no project CLAUDE.md, .mcp.json or
+# hook from the tree around the bench leaks into either arm.
+CHECKOUTS = os.environ.get("SYM_BENCH_CHECKOUTS", os.path.expanduser("~/sym-bench-checkouts"))
 RESULTS = os.path.join(HERE, "results")
 
 
@@ -90,12 +92,24 @@ def claude_bin() -> str:
 
 
 def run_one(task: dict, arm: str, cwd: str, model: str) -> dict:
+    # Headless sessions only get the tools they are allowed: both arms may read
+    # and search; the plugin arm may also call sym (Bash or the MCP tools).
+    # Without this the plugin arm is handed a hint it cannot act on.
+    allowed = ["Read", "Grep", "Glob", "LS"]
     cmd = [claude_bin(), "-p", task["prompt"], "--output-format", "json", "--model", model,
            "--permission-mode", "default"]
     if arm == "plugin":
         cmd += ["--plugin-dir", PLUGIN]
+        # Plugin-provided MCP servers are namespaced plugin_<plugin>_<server>.
+        allowed += ["Bash(sym:*)", "mcp__plugin_sym_sym__sym_ls", "mcp__plugin_sym_sym__sym_read",
+                    "mcp__plugin_sym_sym__sym_map"]
+    cmd += ["--allowedTools", ",".join(allowed)]
     env = dict(os.environ)
     env.pop("CLAUDECODE", None)  # a nested session must not inherit the parent's flags
+    if arm == "plugin":
+        # The hint alone measured as ignored (the agent Greps and does ranged
+        # Reads). The product's teeth are the deny mode, so that is the arm.
+        env["SYM_HOOK_MODE"] = os.environ.get("SYM_BENCH_HOOK_MODE", "deny")
     t0 = time.time()
     r = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=900, env=env)
     wall = time.time() - t0
@@ -142,7 +156,7 @@ def tool_mix(session_id: str | None) -> dict:
                         name = block.get("name", "")
                         if name == "Read":
                             mix["Read"] += 1
-                        elif name.startswith("mcp__sym__"):
+                        elif name.startswith("mcp__") and name.rsplit("__", 1)[-1] in ("sym_ls", "sym_read", "sym_map"):
                             mix["sym_mcp"] += 1
                         elif name == "Bash" and re.search(r"(^|\s)(rtk\s+)?sym\s", (block.get("input") or {}).get("command", "")):
                             mix["sym_bash"] += 1

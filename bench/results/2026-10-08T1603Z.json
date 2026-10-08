@@ -1,0 +1,119 @@
+{
+ "stamp": "2026-10-08T1603Z",
+ "repo": {
+  "url": "https://github.com/BurntSushi/ripgrep",
+  "ref": "14.1.1",
+  "extra": "["
+ },
+ "model": "claude-sonnet-5",
+ "runs": 1,
+ "summary": {
+  "plain": {
+   "n": 2,
+   "cost_median": 0.2479242,
+   "cost_mean": 0.2479242,
+   "cache_read_median": 516496.0,
+   "input_median": 25.0,
+   "turns_median": 13.0,
+   "reads": 8,
+   "sym_calls": 0
+  },
+  "plugin": {
+   "n": 2,
+   "cost_median": 0.20806860000000002,
+   "cost_mean": 0.20806860000000002,
+   "cache_read_median": 618583.0,
+   "input_median": 28.0,
+   "turns_median": 15.0,
+   "reads": 6,
+   "sym_calls": 0
+  },
+  "delta_median_cost_pct": -16.1
+ },
+ "rows": [
+  {
+   "task": "rg-binary-detect",
+   "arm": "plain",
+   "wall_s": 35.4,
+   "rc": 0,
+   "cost_usd": 0.16731059999999998,
+   "turns": 7,
+   "input": 12,
+   "output": 1729,
+   "cache_create": 26363,
+   "cache_read": 222723,
+   "session_id": "eb8afd5f-5060-4759-a689-a263444ae05b",
+   "answer": "Confirmed: ripgrep's default binary detection checks for `b'\\x00'` (set in `crates/core/flags/hiargs.rs:1156-1163`), and the core logic lives in the `fill` method of `LineBuffer` in `crates/searcher/src/line_buffer.rs:406-462`.\n\n**Mechanism:** When reading a chunk, `LineBuffer::fill` matches on `self.config.binary`:\n- `BinaryDetection::Quit(byte)` (line 437): scans the freshly-read bytes with `newbytes.find_byte(byte)` \u2014 if found, it truncates the buffer at that offset, records `binary_byte_offset`, and makes the reader behave as if EOF were hit (search stops there).\n- `BinaryDetection::Conver",
+   "tools": {
+    "Read": 1,
+    "sym_bash": 0,
+    "sym_mcp": 0,
+    "other": 5
+   },
+   "run": 0
+  },
+  {
+   "task": "rg-binary-detect",
+   "arm": "plugin",
+   "wall_s": 26.8,
+   "rc": 0,
+   "cost_usd": 0.0750762,
+   "turns": 6,
+   "input": 10,
+   "output": 1353,
+   "cache_create": 5251,
+   "cache_read": 202611,
+   "session_id": "defcc599-0e6d-4134-ad26-ef464cdb4a97",
+   "answer": "Ripgrep's binary detection happens in `LineBufferReader::fill` (`crates/searcher/src/line_buffer.rs`), inside the `match self.config.binary` block (around line 435-461). By default `BinaryDetection::Quit(b'\\x00')` is used, so it calls `newbytes.find_byte(b'\\x00')` \u2014 i.e., it scans the newly-read chunk for the NUL byte (`\\x00`). If found, it treats everything from that point as binary and stops reading (acts as EOF); with `BinaryDetection::Convert`, it instead replaces each NUL with the line terminator via `replace_bytes`.\n\nSo: the byte is `\\x00` (NUL), and the deciding function is `LineBufferR",
+   "tools": {
+    "Read": 2,
+    "sym_bash": 0,
+    "sym_mcp": 0,
+    "other": 3
+   },
+   "run": 0
+  },
+  {
+   "task": "rg-max-count",
+   "arm": "plain",
+   "wall_s": 74.2,
+   "rc": 0,
+   "cost_usd": 0.32853780000000005,
+   "turns": 19,
+   "input": 38,
+   "output": 5802,
+   "cache_create": 27097,
+   "cache_read": 810269,
+   "session_id": "8d7eb734-00af-4a6f-9385-29d82e6423df",
+   "answer": "Good, this confirms the consistent pattern across all three strategies. I have enough to answer.\n\n## What happens\n\nWhen `--max-count N` is hit partway through a file, ripgrep doesn't abort the search abruptly \u2014 it finishes cleanly via the `Sink` trait's return-value protocol:\n\n1. **The printer tracks the count.** `StandardSink::matched` (`crates/printer/src/standard.rs:810`) increments `match_count` on every match, then calls `self.should_quit()` (`standard.rs:785`), which returns `true` once `match_count >= max_matches` *and* any configured `after_context` has been fully emitted. `matched()` ",
+   "tools": {
+    "Read": 7,
+    "sym_bash": 0,
+    "sym_mcp": 0,
+    "other": 11
+   },
+   "run": 0
+  },
+  {
+   "task": "rg-max-count",
+   "arm": "plugin",
+   "wall_s": 86.6,
+   "rc": 0,
+   "cost_usd": 0.34106100000000006,
+   "turns": 24,
+   "input": 46,
+   "output": 6491,
+   "cache_create": 17287,
+   "cache_read": 1034555,
+   "session_id": "8f21238b-d867-45c0-8a0e-4badc15a4337",
+   "answer": "When `--max-count=N` is hit partway through a file, the stop signal originates in the printer, not the searcher itself, and then propagates down into the searcher's driver loop:\n\n1. **Printer decides \"enough\":** `StandardSink::matched` (`crates/printer/src/standard.rs:810`) increments `match_count` on every match and, after writing the match, calls `self.should_quit()` (`standard.rs:785`). `should_quit` returns `true` once `match_count >= max_matches` *and* any configured `after_context` has been fully emitted. `matched` returns `Ok(!self.should_quit())` \u2014 so once the limit is reached, it retu",
+   "tools": {
+    "Read": 4,
+    "sym_bash": 0,
+    "sym_mcp": 0,
+    "other": 19
+   },
+   "run": 0
+  }
+ ]
+}

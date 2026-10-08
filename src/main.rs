@@ -40,6 +40,10 @@ enum HookCmd {
     Pre {
         #[arg(long, default_value_t = 200, env = "SYM_HOOK_MIN_LINES")]
         min_lines: usize,
+        /// `hint` adds context; `deny` refuses the whole-file Read (ranged
+        /// Reads and sym itself still work)
+        #[arg(long, default_value = "hint", env = "SYM_HOOK_MODE")]
+        mode: String,
     },
 }
 
@@ -58,11 +62,12 @@ fn main() {
         Top::Mcp => sym::mcp::serve_stdio(),
         Top::Serve { port, root } => sym::serve::serve(port, root),
         Top::Hook {
-            which: HookCmd::Pre { min_lines },
+            which: HookCmd::Pre { min_lines, mode },
         } => {
             let mut input = String::new();
             let _ = std::io::Read::read_to_string(&mut std::io::stdin(), &mut input);
-            if let Some(json) = sym::hook::pre_read(&input, min_lines) {
+            let mode = sym::hook::Mode::parse(&mode);
+            if let Some(json) = sym::hook::pre_read_mode(&input, min_lines, mode) {
                 out(&json);
             }
             Ok(())

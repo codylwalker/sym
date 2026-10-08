@@ -1,0 +1,119 @@
+{
+ "stamp": "2026-10-08T1552Z",
+ "repo": {
+  "url": "https://github.com/BurntSushi/ripgrep",
+  "ref": "14.1.1",
+  "extra": "["
+ },
+ "model": "claude-sonnet-5",
+ "runs": 1,
+ "summary": {
+  "plain": {
+   "n": 2,
+   "cost_median": 0.4272607,
+   "cost_mean": 0.4272607,
+   "cache_read_median": 653528.5,
+   "input_median": 28.0,
+   "turns_median": 14.0,
+   "reads": 8,
+   "sym_calls": 0
+  },
+  "plugin": {
+   "n": 2,
+   "cost_median": 0.5436828,
+   "cost_mean": 0.5436828,
+   "cache_read_median": 1169514.0,
+   "input_median": 44.0,
+   "turns_median": 22.0,
+   "reads": 15,
+   "sym_calls": 0
+  },
+  "delta_median_cost_pct": 27.2
+ },
+ "rows": [
+  {
+   "task": "rg-binary-detect",
+   "arm": "plain",
+   "wall_s": 67.3,
+   "rc": 0,
+   "cost_usd": 0.3588968,
+   "turns": 13,
+   "input": 26,
+   "output": 4119,
+   "cache_create": 48251,
+   "cache_read": 623254,
+   "session_id": "6d88e0ef-6688-4735-93b2-e1178d3489a4",
+   "answer": "Ripgrep's binary detection happens in `LineBuffer::fill` in `crates/searcher/src/line_buffer.rs:406-472`. On each chunk read from the underlying reader, it scans the newly-read bytes for a configured sentinel byte via `newbytes.find_byte(byte)` (line_buffer.rs:438, under the `BinaryDetection::Quit(byte)` arm) \u2014 or `replace_bytes` under `BinaryDetection::Convert(byte)` (line_buffer.rs:449).\n\nThat sentinel byte is **NUL, `b'\\x00'`** \u2014 the standard heuristic \"if this byte appears, the content is binary.\" (The test suite at the bottom of that file, e.g. `buffer_binary_quit1`, exercises exactly thi",
+   "tools": {
+    "Read": 3,
+    "sym_bash": 0,
+    "sym_mcp": 0,
+    "other": 9
+   },
+   "run": 0
+  },
+  {
+   "task": "rg-binary-detect",
+   "arm": "plugin",
+   "wall_s": 121.8,
+   "rc": 0,
+   "cost_usd": 0.4976072,
+   "turns": 22,
+   "input": 44,
+   "output": 7614,
+   "cache_create": 49167,
+   "cache_read": 1123556,
+   "session_id": "5630237b-76d2-4e37-90fa-f70faa1117dc",
+   "answer": "Ripgrep's binary detection happens inside `grep-searcher`, not via any filetype/magic check \u2014 it's a simple byte scan baked into the line-reading buffer.\n\n**Where:** `LineBuffer::fill` in `crates/searcher/src/line_buffer.rs` (line_buffer.rs:406-472). As each chunk is read off the underlying reader, the newly-read bytes are scanned:\n\n```rust\nBinaryDetection::Quit(byte) => {\n    if let Some(i) = newbytes.find_byte(byte) {\n        self.end = oldend + i;\n        self.last_lineterm = self.end;\n        self.binary_byte_offset = Some(self.absolute_byte_offset + self.end as u64);\n        return Ok(sel",
+   "tools": {
+    "Read": 6,
+    "sym_bash": 0,
+    "sym_mcp": 0,
+    "other": 15
+   },
+   "run": 0
+  },
+  {
+   "task": "rg-max-count",
+   "arm": "plain",
+   "wall_s": 68.6,
+   "rc": 0,
+   "cost_usd": 0.49562459999999997,
+   "turns": 15,
+   "input": 30,
+   "output": 5054,
+   "cache_create": 77066,
+   "cache_read": 683803,
+   "session_id": "52da0ce0-cb79-4cc5-b354-83945647f64f",
+   "answer": "In ripgrep's architecture, `--max-count` isn't tracked by `grep-searcher` at all \u2014 the searcher just loops until its `Sink` tells it to stop. The limit lives in the `Sink` implementation: `grep-printer`'s `StandardSink`.\n\n**What happens mid-file:**\n\n1. Each match increments `match_count` in `StandardSink::matched()` (`crates/printer/src/standard.rs:810-849`).\n2. At the end of that method it returns `Ok(!self.should_quit())` \u2014 the bool the searcher treats as \"keep going.\"\n3. **`should_quit`** (`crates/printer/src/standard.rs:785-794`) is the function that decides to stop:\n   ```rust\n   fn shoul",
+   "tools": {
+    "Read": 5,
+    "sym_bash": 0,
+    "sym_mcp": 0,
+    "other": 9
+   },
+   "run": 0
+  },
+  {
+   "task": "rg-max-count",
+   "arm": "plugin",
+   "wall_s": 166.0,
+   "rc": 0,
+   "cost_usd": 0.5897584,
+   "turns": 22,
+   "input": 44,
+   "output": 6978,
+   "cache_create": 69199,
+   "cache_read": 1215472,
+   "session_id": "4ee08b1d-c8d2-46ec-8836-d6176d8e37d1",
+   "answer": "`--max-count` isn't tracked by the searcher itself \u2014 `grep-searcher`'s `Core` has no match-count state at all. It's enforced by the `Sink` (the `StandardSink` in `grep-printer`), and the searcher just obeys whatever the `Sink` tells it.\n\nWhat happens mid-file:\n\n1. Each time a line matches, `Core::sink_matched` (`crates/searcher/src/searcher/core.rs:454`) calls `self.sink.matched(...)`.\n2. `StandardSink::matched` (`crates/printer/src/standard.rs:810`) increments `match_count`, prints the line, then returns `Ok(!self.should_quit())`.\n3. **`StandardSink::should_quit`** (`crates/printer/src/standa",
+   "tools": {
+    "Read": 9,
+    "sym_bash": 0,
+    "sym_mcp": 0,
+    "other": 12
+   },
+   "run": 0
+  }
+ ]
+}

@@ -3,3 +3,4 @@
 /site/_deploy.html
 *.log
 .DS_Store
+/bench/checkouts/

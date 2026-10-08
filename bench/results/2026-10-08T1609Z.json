@@ -1,0 +1,118 @@
+{
+ "stamp": "2026-10-08T1609Z",
+ "repo": {
+  "url": "https://github.com/BurntSushi/ripgrep",
+  "ref": "14.1.1"
+ },
+ "model": "claude-sonnet-5",
+ "runs": 1,
+ "summary": {
+  "plain": {
+   "n": 2,
+   "cost_median": 0.09015390000000001,
+   "cost_mean": 0.09015390000000001,
+   "cache_read_median": 111184.5,
+   "input_median": 7.0,
+   "turns_median": 3.5,
+   "reads": 2,
+   "sym_calls": 0
+  },
+  "plugin": {
+   "n": 2,
+   "cost_median": 0.0622884,
+   "cost_mean": 0.0622884,
+   "cache_read_median": 175877.0,
+   "input_median": 10.0,
+   "turns_median": 5.0,
+   "reads": 3,
+   "sym_calls": 0
+  },
+  "delta_median_cost_pct": -30.9
+ },
+ "rows": [
+  {
+   "task": "defs-glob",
+   "arm": "plain",
+   "wall_s": 16.6,
+   "rc": 0,
+   "cost_usd": 0.09363740000000001,
+   "turns": 3,
+   "input": 6,
+   "output": 676,
+   "cache_create": 17146,
+   "cache_read": 91407,
+   "session_id": "b2624448-6d0a-4715-acbc-99b0713a4105",
+   "answer": "`Glob::update` (defs.rs:2507-2511) converts the flag value to a string and pushes it onto `LowArgs.globs`:\n\n```rust\nfn update(&self, v: FlagValue, args: &mut LowArgs) -> anyhow::Result<()> {\n    let glob = convert::string(v.unwrap_value())?;\n    args.globs.push(glob);\n    Ok(())\n}\n```\n\nSo each `-g`/`--glob` occurrence is converted to a `String` and appended to the `globs: Vec<String>` field of `LowArgs`.",
+   "tools": {
+    "Read": 1,
+    "sym_bash": 0,
+    "sym_mcp": 0,
+    "other": 1
+   },
+   "run": 0
+  },
+  {
+   "task": "defs-glob",
+   "arm": "plugin",
+   "wall_s": 18.5,
+   "rc": 0,
+   "cost_usd": 0.0487354,
+   "turns": 4,
+   "input": 8,
+   "output": 849,
+   "cache_create": 3013,
+   "cache_read": 140887,
+   "session_id": "fdb7614d-651b-4bdf-af3f-0d4151ad916d",
+   "answer": "`Glob::update` (crates/core/flags/defs.rs:2507-2511) converts the flag's value to a `String` and pushes it onto `args.globs` (a `Vec<String>` field on `LowArgs`):\n\n```rust\nfn update(&self, v: FlagValue, args: &mut LowArgs) -> anyhow::Result<()> {\n    let glob = convert::string(v.unwrap_value())?;\n    args.globs.push(glob);\n    Ok(())\n}\n```\n\nSo each `-g`/`--glob` occurrence is appended to `LowArgs::globs`, rather than overwriting a single value \u2014 consistent with the flag's doc comment noting multiple `--glob` flags may be used.",
+   "tools": {
+    "Read": 1,
+    "sym_bash": 0,
+    "sym_mcp": 0,
+    "other": 2
+   },
+   "run": 0
+  },
+  {
+   "task": "glue-fill",
+   "arm": "plain",
+   "wall_s": 26.0,
+   "rc": 0,
+   "cost_usd": 0.0866704,
+   "turns": 4,
+   "input": 8,
+   "output": 1453,
+   "cache_create": 11483,
+   "cache_read": 130962,
+   "session_id": "21ddc6c4-0270-4340-bbe4-19362410a74b",
+   "answer": "`ReadByLine::fill` (glue.rs:49-79) refills the line buffer and tells `run` (glue.rs:38-47) whether to keep looping.\n\n**What happens when the buffer is exhausted:**\n\n1. `run`'s loop (line 40) calls `self.fill()` each iteration, asserting (line 50) that everything before `core.pos()` in the current buffer has already been consumed/searched.\n2. `fill` rolls any unsearched leftover (context lines) to the front of the buffer via `self.core.roll(...)` (line 54), then tells the reader those bytes are consumed (line 55).\n3. It calls `self.rdr.fill()` (line 56) to read more data from the underlying rea",
+   "tools": {
+    "Read": 1,
+    "sym_bash": 0,
+    "sym_mcp": 0,
+    "other": 2
+   },
+   "run": 0
+  },
+  {
+   "task": "glue-fill",
+   "arm": "plugin",
+   "wall_s": 38.0,
+   "rc": 0,
+   "cost_usd": 0.0758414,
+   "turns": 6,
+   "input": 12,
+   "output": 2124,
+   "cache_create": 3101,
+   "cache_read": 210867,
+   "session_id": "5e16635c-a3a8-47ab-8bce-d3b020db95b3",
+   "answer": "In `crates/searcher/src/searcher/glue.rs`, `ReadByLine::fill` (lines 49\u201379) is the method that pulls more bytes into the line buffer; it returns `Ok(false)` to tell `run` there's nothing left to search.\n\n**What `fill` does (lines 49\u201379):**\n\n1. Line 50: asserts the unconsumed tail of the buffer is empty (the caller must have consumed everything via `match_by_line` already).\n2. Lines 54\u201355: rolls any leftover context lines to the front of the buffer (`self.core.roll`) and tells the reader how many bytes were consumed.\n3. Lines 56\u201359: calls `self.rdr.fill()` to actually read more bytes from the u",
+   "tools": {
+    "Read": 2,
+    "sym_bash": 0,
+    "sym_mcp": 0,
+    "other": 3
+   },
+   "run": 0
+  }
+ ]
+}
