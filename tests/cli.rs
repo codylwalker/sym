@@ -120,7 +120,7 @@ fn find_lists_definitions_across_fixtures() {
     let (ok, out, _) = run(&["find", "Serve", &dir]);
     assert!(ok, "{out}");
     assert!(out.contains("a.go:") && out.contains("Server.Serve"), "{out}");
-    let (ok, out, _) = run(&["find", "area", &dir, "--prefix", "--json"]);
+    let (ok, out, _) = run(&["find", "Ser", &dir, "--prefix", "--json"]);
     assert!(ok);
     let v: serde_json::Value = serde_json::from_str(&out).unwrap();
     assert!(v["hits"].as_array().unwrap().len() >= 2);
