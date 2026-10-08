@@ -4,12 +4,11 @@
 //! L2-normalized, one row per chunk in `symbols.ndjson` order).
 
 use crate::extract::extract_symbols;
-use crate::lang::lang_of;
-use crate::ops::{display, load, SKIP_DIRS};
+use crate::ops::{display, load, source_files};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub const TEXT_CAP: usize = 1_500;
 
@@ -45,16 +44,6 @@ fn h64(parts: &[&str]) -> String {
     format!("{:016x}", h.finish())
 }
 
-fn source_files(dir: &Path) -> Vec<PathBuf> {
-    walkdir::WalkDir::new(dir)
-        .into_iter()
-        .filter_entry(|e| !(e.file_type().is_dir() && SKIP_DIRS.contains(&e.file_name().to_string_lossy().as_ref())))
-        .filter_map(Result::ok)
-        .filter(|e| e.file_type().is_file() && lang_of(e.path()).is_some())
-        .map(|e| e.path().to_path_buf())
-        .collect()
-}
-
 /// Every symbol of every supported file under `dir`, as chunks.
 pub fn chunks(dir: &Path) -> Result<Vec<Chunk>, String> {
     if !dir.is_dir() {
@@ -72,19 +61,50 @@ fn chunks_of(dir: &Path, f: &Path) -> Vec<Chunk> {
     let Ok(symbols) = extract_symbols(&src, lang) else { return Vec::new() };
     let lines: Vec<&str> = src.lines().collect();
     let rel = display(f.strip_prefix(dir).unwrap_or(f));
-    symbols
-        .into_iter()
-        .map(|s| {
-            let end = s.end_line.min(lines.len());
-            let start = s.start_line.saturating_sub(1).min(end);
-            let mut text: String = lines[start..end].join("\n");
-            if text.chars().count() > TEXT_CAP {
-                text = text.chars().take(TEXT_CAP).collect();
-            }
+    let mut out = Vec::new();
+    for s in symbols {
+        let end = s.end_line.min(lines.len());
+        let start = s.start_line.saturating_sub(1).min(end);
+        // A long symbol is embedded in windows so its tail is searchable too;
+        // every window after the first carries the signature as its header.
+        for (w, (lo, hi)) in windows(&lines[start..end], TEXT_CAP).into_iter().enumerate() {
+            let body = lines[start + lo..start + hi].join("\n");
+            let text = if w == 0 { body } else { format!("{}\n…\n{}", s.signature, body) };
+            let text: String = if text.chars().count() > TEXT_CAP { text.chars().take(TEXT_CAP).collect() } else { text };
             let id = h64(&[&rel, &s.path, &text]);
-            Chunk { file: rel.clone(), path: s.path, kind: s.kind.to_string(), start_line: s.start_line, end_line: s.end_line, signature: s.signature, text, id }
-        })
-        .collect()
+            out.push(Chunk {
+                file: rel.clone(),
+                path: s.path.clone(),
+                kind: s.kind.to_string(),
+                start_line: s.start_line + lo,
+                end_line: s.start_line + hi.max(1) - 1,
+                signature: s.signature.clone(),
+                text,
+                id,
+            });
+        }
+    }
+    out
+}
+
+/// Line windows of at most `cap` chars (a single over-long line is its own
+/// window and gets truncated by the caller).
+fn windows(lines: &[&str], cap: usize) -> Vec<(usize, usize)> {
+    let mut out = Vec::new();
+    let (mut lo, mut size) = (0usize, 0usize);
+    for (i, l) in lines.iter().enumerate() {
+        let n = l.chars().count() + 1;
+        if size + n > cap && i > lo {
+            out.push((lo, i));
+            lo = i;
+            size = 0;
+        }
+        size += n;
+    }
+    if lo < lines.len() || out.is_empty() {
+        out.push((lo, lines.len()));
+    }
+    out
 }
 
 pub struct BuildReport {
@@ -229,11 +249,15 @@ pub fn find_where(index: &Path, query: &str, k: usize, embed: Option<(&str, &str
         })
         .collect();
     scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
-    Ok(WhereOut {
-        query: query.to_string(),
-        index: display(index),
-        hits: scored.into_iter().take(k).map(|(score, i)| Hit { score, chunk: chunks[i].clone() }).collect(),
-    })
+    // One hit per symbol: the best of its windows.
+    let mut seen = std::collections::HashSet::new();
+    let hits = scored
+        .into_iter()
+        .filter(|(_, i)| seen.insert((chunks[*i].file.clone(), chunks[*i].path.clone())))
+        .take(k)
+        .map(|(score, i)| Hit { score, chunk: chunks[i].clone() })
+        .collect();
+    Ok(WhereOut { query: query.to_string(), index: display(index), hits })
 }
 
 pub fn where_text(o: &WhereOut) -> String {
@@ -303,12 +327,21 @@ mod tests {
     #[test]
     fn chunks_cap_text_and_carry_ids() {
         let dir = tempfile::tempdir().unwrap();
-        let big = format!("fn big() {{\n{}}}\n", "    let x = 1;\n".repeat(400));
+        let body: String = (0..400).map(|i| format!("    let x{i:03}={i};\n")).collect();
+        let big = format!("fn big() {{\n{body}}}\n");
         std::fs::write(dir.path().join("x.rs"), big).unwrap();
         let c = chunks(dir.path()).unwrap();
-        assert_eq!(c.len(), 1);
-        assert!(c[0].text.chars().count() <= TEXT_CAP);
+        // 11 + 400×16 + 2 chars in 1,500-char windows: five windows, every
+        // one under the cap, the later ones headed by the signature, line
+        // ranges tiling the symbol.
+        assert_eq!(c.len(), 5, "{:?}", c.iter().map(|x| (x.start_line, x.end_line)).collect::<Vec<_>>());
+        assert!(c.iter().all(|x| x.text.chars().count() <= TEXT_CAP && x.path == "big"));
+        assert_eq!(c[0].start_line, 1);
+        assert_eq!(c[4].end_line, 402, "{:?}", c.iter().map(|x| (x.start_line, x.end_line, x.text.len())).collect::<Vec<_>>());
+        assert!(c[1].text.starts_with("fn big()"), "{}", &c[1].text[..40]);
+        assert_eq!(c[1].start_line, c[0].end_line + 1);
         assert_eq!(c[0].id.len(), 16);
+        assert_eq!(c.iter().map(|x| x.id.as_str()).collect::<std::collections::HashSet<_>>().len(), 5);
         assert_eq!(crate::embed::endpoint("http://h:1"), "http://h:1/v1/embeddings");
         assert_eq!(crate::embed::endpoint("http://h:1/v1/"), "http://h:1/v1/embeddings");
     }

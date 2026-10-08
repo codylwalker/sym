@@ -145,18 +145,8 @@ pub fn find(dir: &Path, name: &str, prefix: bool) -> Result<FindOut, String> {
     }
     let mut hits = Vec::new();
     let mut scanned = 0usize;
-    for entry in walkdir::WalkDir::new(dir)
-        .into_iter()
-        .filter_entry(|e| {
-            !(e.file_type().is_dir()
-                && SKIP_DIRS.contains(&e.file_name().to_string_lossy().as_ref()))
-        })
-        .filter_map(Result::ok)
-    {
-        let p = entry.path();
-        if !entry.file_type().is_file() || lang_of(p).is_none() {
-            continue;
-        }
+    for p in source_files(dir) {
+        let p = p.as_path();
         let Ok((src, lang)) = load(p) else { continue };
         let Ok(symbols) = extract_symbols(&src, lang) else { continue };
         scanned += 1;
@@ -174,6 +164,46 @@ pub fn find(dir: &Path, name: &str, prefix: bool) -> Result<FindOut, String> {
     }
     hits.sort_by(|a, b| a.path.cmp(&b.path).then(a.symbol.start_line.cmp(&b.symbol.start_line)));
     Ok(FindOut { dir: display(dir), name: name.to_string(), prefix, hits, files_scanned: scanned })
+}
+
+/// Every supported source file under `dir`. Inside a git checkout this is
+/// `git ls-files` (tracked + untracked, ignored files left out), so a
+/// generated tree beside the code (a types dump, a build dir) never lands in
+/// the map or the index; elsewhere a walk that skips the usual build dirs.
+pub fn source_files(dir: &Path) -> Vec<PathBuf> {
+    if let Some(files) = git_files(dir) {
+        return files;
+    }
+    walkdir::WalkDir::new(dir)
+        .sort_by_file_name()
+        .into_iter()
+        .filter_entry(|e| !(e.file_type().is_dir() && SKIP_DIRS.contains(&e.file_name().to_string_lossy().as_ref())))
+        .filter_map(Result::ok)
+        .filter(|e| e.file_type().is_file() && lang_of(e.path()).is_some())
+        .map(|e| e.path().to_path_buf())
+        .collect()
+}
+
+fn git_files(dir: &Path) -> Option<Vec<PathBuf>> {
+    let out = std::process::Command::new("git")
+        .args(["-C"])
+        .arg(dir)
+        .args(["ls-files", "-z", "--cached", "--others", "--exclude-standard"])
+        .stderr(std::process::Stdio::null())
+        .output()
+        .ok()?;
+    if !out.status.success() {
+        return None;
+    }
+    let mut files: Vec<PathBuf> = out
+        .stdout
+        .split(|b| *b == 0)
+        .filter(|p| !p.is_empty())
+        .map(|p| dir.join(String::from_utf8_lossy(p).as_ref()))
+        .filter(|p| lang_of(p).is_some() && p.is_file())
+        .collect();
+    files.sort();
+    Some(files)
 }
 
 pub const SKIP_DIRS: &[&str] = &[
@@ -198,19 +228,7 @@ pub fn map(dir: &Path, budget: usize) -> Result<MapOut, String> {
     if !dir.is_dir() {
         return Err(format!("not a directory: {}", display(dir)));
     }
-    let mut files: Vec<PathBuf> = Vec::new();
-    for entry in walkdir::WalkDir::new(dir)
-        .into_iter()
-        .filter_entry(|e| {
-            !(e.file_type().is_dir()
-                && SKIP_DIRS.contains(&e.file_name().to_string_lossy().as_ref()))
-        })
-        .filter_map(Result::ok)
-    {
-        if entry.file_type().is_file() && lang_of(entry.path()).is_some() {
-            files.push(entry.path().to_path_buf());
-        }
-    }
+    let files: Vec<PathBuf> = source_files(dir);
     if files.is_empty() {
         return Err(format!("no {EXTENSIONS} files found"));
     }
@@ -276,6 +294,25 @@ pub fn map(dir: &Path, budget: usize) -> Result<MapOut, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn source_files_respect_gitignore_inside_a_checkout() {
+        let dir = tempfile::tempdir().unwrap();
+        let d = dir.path();
+        std::fs::write(d.join("a.rs"), "fn a() {}\n").unwrap();
+        std::fs::create_dir_all(d.join("gen")).unwrap();
+        std::fs::write(d.join("gen/types.ts"), "export type T = 1\n").unwrap();
+        // No checkout: the walk sees both.
+        let names = |v: Vec<PathBuf>| v.iter().map(|p| display(p.strip_prefix(d).unwrap())).collect::<Vec<_>>();
+        assert_eq!(names(source_files(d)), vec!["a.rs", "gen/types.ts"]);
+        let git = |args: &[&str]| std::process::Command::new("git").arg("-C").arg(d).args(args).output().map(|o| o.status.success()).unwrap_or(false);
+        if !git(&["init", "-q"]) {
+            eprintln!("NOT VERIFIED: git missing");
+            return;
+        }
+        std::fs::write(d.join(".gitignore"), "gen/\n").unwrap();
+        assert_eq!(names(source_files(d)), vec!["a.rs"], "ignored dirs stay out, untracked files stay in");
+    }
 
     #[test]
     fn unsupported_extension_is_clear_error() {
