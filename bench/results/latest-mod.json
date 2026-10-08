@@ -1706,6 +1706,5 @@
    },
    "run": 2
   }
- ],
- "note": "plain vs mod (sym 0.3 mod: skeleton Read answers, upfront map/ls/read/find tools, repo map on the first message); 12 tasks x 3 runs; counter counts only calls that ran"
+ ]
 }

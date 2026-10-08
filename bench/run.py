@@ -98,11 +98,13 @@ def run_one(task: dict, arm: str, cwd: str, model: str) -> dict:
     allowed = ["Read", "Grep", "Glob", "LS"]
     cmd = [claude_bin(), "-p", task["prompt"], "--output-format", "json", "--model", model,
            "--permission-mode", "default"]
-    if arm == "plugin":
+    if arm in ("plugin", "mod"):
         cmd += ["--plugin-dir", PLUGIN]
-        # Plugin-provided MCP servers are namespaced plugin_<plugin>_<server>.
+        # Plugin-provided MCP servers are namespaced plugin_<plugin>_<server>;
+        # the mod's registered tools are mcp__sym__<name>.
         allowed += ["Bash(sym:*)", "mcp__plugin_sym_sym__sym_ls", "mcp__plugin_sym_sym__sym_read",
-                    "mcp__plugin_sym_sym__sym_map"]
+                    "mcp__plugin_sym_sym__sym_map", "mcp__plugin_sym_sym__sym_find",
+                    "mcp__sym__map", "mcp__sym__ls", "mcp__sym__read", "mcp__sym__find", "mcp__sym__where"]
     cmd += ["--allowedTools", ",".join(allowed)]
     env = dict(os.environ)
     env.pop("CLAUDECODE", None)  # a nested session must not inherit the parent's flags
@@ -110,6 +112,10 @@ def run_one(task: dict, arm: str, cwd: str, model: str) -> dict:
         # The hint alone measured as ignored (the agent Greps and does ranged
         # Reads). The product's teeth are the deny mode, so that is the arm.
         env["SYM_HOOK_MODE"] = os.environ.get("SYM_BENCH_HOOK_MODE", "deny")
+    if arm == "mod":
+        # The mod (Claude Code 2.1.287+): a whole-file Read of a big source
+        # file is answered with its skeleton; the classic hook stays quiet.
+        env["SYM_HOOK_MODE"] = "off"
     t0 = time.time()
     r = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=900, env=env)
     wall = time.time() - t0
@@ -138,7 +144,7 @@ def tool_mix(session_id: str | None) -> dict:
     """Count Read vs sym tool calls from the session transcript, when found."""
     # Only calls that RAN count: a permission-denied or failed call leaves a
     # tool_result with is_error, and must not be scored as a use of the tool.
-    mix: dict = {"Read": 0, "sym_bash": 0, "sym_mcp": 0, "other": 0, "denied": 0}
+    mix: dict = {"Read": 0, "sym_bash": 0, "sym_mcp": 0, "other": 0, "denied": 0, "skeleton": 0}
     if not session_id:
         return mix
     home = os.path.expanduser("~")
@@ -158,8 +164,15 @@ def tool_mix(session_id: str | None) -> dict:
                 for block in (ev.get("message") or {}).get("content") or []:
                     if block.get("type") == "tool_use":
                         uses[block.get("id")] = block
-                    elif block.get("type") == "tool_result" and block.get("is_error"):
-                        errored.add(block.get("tool_use_id"))
+                    elif block.get("type") == "tool_result":
+                        if block.get("is_error"):
+                            errored.add(block.get("tool_use_id"))
+                        c = block.get("content")
+                        text = c if isinstance(c, str) else json.dumps(c)
+                        # The mod answers a big Read with the skeleton; that leaves no
+                        # tool_use of its own, only this marker in the Read's result.
+                        if "[sym] Whole file not loaded" in text:
+                            mix["skeleton"] += 1
             for uid, block in uses.items():
                 if uid in errored:
                     mix["denied"] += 1
@@ -168,7 +181,7 @@ def tool_mix(session_id: str | None) -> dict:
                 cmd = (block.get("input") or {}).get("command", "")
                 if name == "Read":
                     mix["Read"] += 1
-                elif name.startswith("mcp__") and name.rsplit("__", 1)[-1] in ("sym_ls", "sym_read", "sym_map"):
+                elif name.startswith("mcp__") and name.split("__")[1] in ("sym", "plugin_sym_sym") and name.rsplit("__", 1)[-1] in ("sym_ls", "sym_read", "sym_map", "sym_find", "ls", "read", "map", "find", "where"):
                     mix["sym_mcp"] += 1
                 elif name == "Bash" and re.search(r"(^|\s)(rtk\s+)?(staros\s+)?sym\s", cmd):
                     mix["sym_bash"] += 1
@@ -195,9 +208,11 @@ def summarize(rows: list[dict]) -> dict:
             "turns_median": statistics.median(r["turns"] or 0 for r in rs),
             "reads": sum(r["tools"]["Read"] for r in rs),
             "sym_calls": sum(r["tools"]["sym_bash"] + r["tools"]["sym_mcp"] for r in rs),
+            "skeletons": sum(r["tools"].get("skeleton", 0) for r in rs),
         }
-    if "plain" in summary and "plugin" in summary:
-        a, b = summary["plain"]["cost_median"], summary["plugin"]["cost_median"]
+    other = "plugin" if "plugin" in summary else ("mod" if "mod" in summary else None)
+    if "plain" in summary and other:
+        a, b = summary["plain"]["cost_median"], summary[other]["cost_median"]
         summary["delta_median_cost_pct"] = round((b - a) / a * 100.0, 1) if a else None
         # The headline: per task, the median cost of each arm, then the median of
         # those paired deltas. Pooling tasks of different sizes would let the
@@ -209,12 +224,13 @@ def summarize(rows: list[dict]) -> dict:
             per_task.setdefault(r["task"], {}).setdefault(r["arm"], []).append(r["cost_usd"])
         deltas = []
         for t, arms in per_task.items():
-            if "plain" in arms and "plugin" in arms:
-                pa, pb = statistics.median(arms["plain"]), statistics.median(arms["plugin"])
+            if "plain" in arms and other in arms:
+                pa, pb = statistics.median(arms["plain"]), statistics.median(arms[other])
                 if pa:
                     deltas.append(round((pb - pa) / pa * 100.0, 1))
         summary["paired_task_deltas_pct"] = dict(zip(sorted(per_task), deltas)) if len(deltas) == len(per_task) else deltas
         summary["headline_pct"] = round(statistics.median(deltas), 1) if deltas else None
+        summary["other_arm"] = other
         summary["tasks_cheaper"] = sum(1 for d in deltas if d < 0)
         summary["tasks_total"] = len(deltas)
     return summary
@@ -230,16 +246,16 @@ def table(rows: list[dict], summary: dict) -> str:
             r["task"], r["arm"], r["cost_usd"], r["input"], r["cache_read"], r["turns"],
             r["tools"]["Read"], r["tools"]["sym_bash"] + r["tools"]["sym_mcp"]))
     lines.append("")
-    for arm in ("plain", "plugin"):
+    for arm in ("plain", "plugin", "mod"):
         s = summary.get(arm)
         if s:
-            lines.append("**%s**: n=%d · median cost %.4f · mean %.4f · median cache read %s · median turns %s · Reads %d · sym calls %d" % (
-                arm, s["n"], s["cost_median"], s["cost_mean"], s["cache_read_median"], s["turns_median"], s["reads"], s["sym_calls"]))
+            lines.append("**%s**: n=%d · median cost %.4f · mean %.4f · median cache read %s · median turns %s · Reads %d · sym calls %d · skeleton answers %d" % (
+                arm, s["n"], s["cost_median"], s["cost_mean"], s["cache_read_median"], s["turns_median"], s["reads"], s["sym_calls"], s.get("skeletons", 0)))
     d = summary.get("headline_pct")
     if d is not None:
         lines.append("")
-        lines.append("**Median of per-task paired cost deltas, plugin vs plain: %+.1f%%; cheaper on %d of %d tasks** (negative = cheaper). Pooled median delta %+.1f%%. Cache reads are billed; losses are in the table." % (
-            d, summary.get("tasks_cheaper", 0), summary.get("tasks_total", 0), summary.get("delta_median_cost_pct") or 0.0))
+        lines.append("**Median of per-task paired cost deltas, %s vs plain: %+.1f%%; cheaper on %d of %d tasks** (negative = cheaper). Pooled median delta %+.1f%%. Cache reads are billed; losses are in the table." % (
+            summary.get("other_arm", "plugin"), d, summary.get("tasks_cheaper", 0), summary.get("tasks_total", 0), summary.get("delta_median_cost_pct") or 0.0))
     return "\n".join(lines) + "\n"
 
 
@@ -249,6 +265,7 @@ def main() -> int:
     ap.add_argument("--model", default="claude-sonnet-5")
     ap.add_argument("--dry", action="store_true")
     ap.add_argument("--only", help="comma-separated task ids")
+    ap.add_argument("--arms", default="plain,plugin", help="comma-separated arms: plain, plugin, mod")
     args = ap.parse_args()
     repo, tasks = read_tasks(os.path.join(HERE, "tasks.toml"))
     if args.only:
@@ -266,7 +283,7 @@ def main() -> int:
     os.makedirs(RESULTS, exist_ok=True)
     for i in range(args.runs):
         for t in tasks:
-            for arm in ("plain", "plugin"):
+            for arm in [a.strip() for a in args.arms.split(",") if a.strip()]:
                 r = run_one(t, arm, cwd, args.model)
                 r["run"] = i
                 rows.append(r)
