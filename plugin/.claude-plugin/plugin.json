@@ -1,7 +1,7 @@
 {
   "name": "sym",
   "displayName": "sym — read the function, not the file",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Symbol-level code reads for coding agents: a skeleton of any source file, one symbol's source with its docs, and a budgeted repo map. Keeps whole files out of context, which keeps prompt caching intact. Rust, Lua, Python, TypeScript, JavaScript, Go, C, C++, Java, Ruby.",
   "author": { "name": "Cody Lee Walker", "email": "cody@stardata.foundation", "url": "https://s2ar.dev/sym/" },
   "homepage": "https://s2ar.dev/sym/",
