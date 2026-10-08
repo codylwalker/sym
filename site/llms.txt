@@ -1,0 +1,33 @@
+# sym
+
+> Read the function, not the file. Symbol-level code reads for AI coding agents: a file's skeleton, one symbol's source with its docs, or a budgeted map of a directory, parsed with tree-sitter. Keeps whole files out of context so prompt caching stays intact. Languages: Rust, Lua, Python, TypeScript/TSX, JavaScript, Go.
+
+Operated by Stardata (Cody Lee Walker, Canada). Contact: cody@stardata.foundation.
+
+## Local (free)
+
+- Install: `cargo install sym-cli` (binary `sym`).
+- CLI: `sym ls <file>`, `sym read <file> <symbol>`, `sym map <dir> --budget N`; `--json`, `--est`.
+- MCP over stdio: `{"command":"sym","args":["mcp"]}` → tools `sym_ls`, `sym_read`, `sym_map`.
+- Claude Code plugin: `claude plugin marketplace add https://github.com/stardata-foundation/sym` then `claude plugin install sym@sym`.
+
+## Hosted (paid per call)
+
+- `POST https://sym.s2ar.dev/v1/sym/map` body `{"repo": "<public git url>", "ref": "<tag|branch>", "budget": 1000}` → `{ok, text, data, tokens_est, charged_usd}`. $0.01 per call.
+- `POST https://sym.s2ar.dev/v1/sym/read` body `{"repo", "ref", "file", "symbol"}`. $0.005 per call.
+- Unpaid requests get HTTP 402 carrying every rail: `WWW-Authenticate: Payment` (Stripe Machine Payments Protocol: cards via Shared Payment Tokens, USDC via Tempo), an x402 body (USDC on Base, header `X-PAYMENT`), and a `checkout_url` for a human to buy a credit pack (then `Authorization: Bearer <key>`).
+- Agent skill for card payments: `npx skills add stripe/link-cli`. Test mode is supported.
+- Failed requests are never charged. Only public repositories are read; checkouts are cached for one hour and never logged.
+
+## Example prompts
+
+- "Use sym_map on this repo with a 1200-token budget, then sym_read the function that parses the --glob flag."
+- "Before reading src/searcher.rs, run sym ls on it and pick the symbol."
+- "Map https://github.com/BurntSushi/ripgrep at 14.1.1 through sym.s2ar.dev and tell me which file has the most importers."
+
+## Links
+
+- Site: https://sym.s2ar.dev
+- Source: https://github.com/stardata-foundation/sym
+- Privacy: https://sym.s2ar.dev/privacy.html · Terms: https://sym.s2ar.dev/terms.html
+- Bench method: https://github.com/stardata-foundation/sym/tree/main/bench

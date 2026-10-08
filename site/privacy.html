@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — sym</title>
+<meta name="description" content="How starlens handles your data: transient in-memory processing, no retention, no logging, no training.">
+<style>
+  :root{--ink:#090C13;--panel:#111726;--line:#232C40;--text:#DCE3EE;--muted:#95A1B4;--faint:#586479;
+    --seal:#E6B54C;--ring:#7FC7FF;
+    --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ink);color:var(--text);font-family:var(--sans);line-height:1.7;font-size:17px;
+    -webkit-font-smoothing:antialiased;background-image:radial-gradient(900px 500px at 85% -10%,rgba(127,199,255,.07),transparent 60%);}
+  .wrap{max-width:720px;margin:0 auto;padding:0 24px 80px}
+  a{color:var(--seal);text-decoration:none}a:hover{text-decoration:underline}
+  header{padding:26px 0;border-bottom:1px solid var(--line);margin-bottom:40px}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-weight:600;font-size:15px}
+  .brand .lens{width:13px;height:13px;border-radius:50%;border:2px solid var(--ring);box-shadow:0 0 8px rgba(127,199,255,.6)}
+  .brand small{color:var(--muted);font-weight:400}
+  h1{font-size:32px;font-weight:800;letter-spacing:-.02em;margin:0 0 6px}
+  .meta{font-family:var(--mono);font-size:12.5px;color:var(--faint);letter-spacing:.03em;margin-bottom:30px}
+  h2{font-size:16px;font-weight:700;color:var(--ring);margin:34px 0 8px;letter-spacing:.01em}
+  p{margin:0 0 14px;color:#C6CFDC}
+  ul{margin:0 0 14px;padding-left:20px;color:#C6CFDC}li{margin:6px 0}
+  strong{color:var(--text)}
+  .lead{font-size:19px;color:#D6DEEA}
+  footer{margin-top:48px;padding-top:22px;border-top:1px solid var(--line);font-family:var(--mono);font-size:13px;color:var(--muted);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><div class="brand"><span class="lens"></span>sym<small>/ Stardata</small></div></header>
+
+  <h1>Privacy Policy</h1>
+  <div class="meta">Effective 2026-10-08 · s2ar.dev</div>
+
+  <p class="lead">sym is a code-reading service operated by Stardata (Cody Lee Walker, Canada). The hosted tier at sym.s2ar.dev clones <strong>public</strong> git repositories you name, answers from them, and keeps the checkout for one hour. It never logs file contents, never trains on them, and never reads a private repository.</p>
+
+  <h2 id="processors">Payment processors</h2><p>Paid calls are settled by <strong>Stripe</strong> (cards through Shared Payment Tokens, USDC through Tempo, and credit-pack checkouts), by an <strong>x402 facilitator</strong> (USDC on Base) when you pay from a wallet, and, for some credit packs, by <strong>Polar</strong> as merchant of record. Each sees only what its own flow requires (a payment credential, an amount, an email for the receipt). We keep a key hash, a balance and per-request usage counts; never a card number.</p><h2>What starlens sees</h2>
+  <p>Only the image(s) in the request you send to the compression endpoint. starlens is a <strong>model,
+    not a proxy into your conversation</strong> — it does not receive, store, or forward your prompts or
+    your exchange with your downstream model.</p>
+
+  <h2>What we do not do</h2>
+  <ul>
+    <li>We do not write your images to disk. They are compressed in memory and discarded when the request completes.</li>
+    <li>We do not log image or prompt content.</li>
+    <li>We never use your data to train anything — under any circumstance.</li>
+  </ul>
+
+  <h2>What we keep</h2>
+  <p>One artifact: the sealed <strong>certificate</strong> for a request. It contains SHA-256 hashes of
+    the input and output image, their pixel dimensions, and the measured witness drift — <strong>never the
+    pixels themselves</strong>. Its purpose is re-verification: anyone can later confirm a certificate
+    matches an image by hash. We also keep aggregate operational counters (request counts, bytes, latency)
+    that contain no content.</p>
+
+  <h2>Processing &amp; sub-processors</h2>
+  <p>Compression runs on servers we operate at Hivelocity (South Carolina, US). Traffic is encrypted in
+    transit (TLS); access is authenticated by API key. We use no third-party analytics, trackers, or
+    advertising. The compression engine is open source, so the data path is auditable end-to-end.</p>
+
+  <h2>Your choices</h2>
+  <p>Because we retain no image content, there is nothing to export or delete on your behalf beyond the
+    hash-only certificates. To ask about a certificate or request its deletion, email
+    <a href="mailto:cody@stardata.foundation">cody@stardata.foundation</a>.</p>
+
+  <h2>Changes</h2>
+  <p>We'll post material changes here with a new effective date.</p>
+
+  <footer>
+    <a href="/starlens/">← starlens</a>
+    <span><a href="/terms.html">Terms of Service</a> · cody@stardata.foundation</span>
+  </footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sym — read the function, not the file</title>
+<meta name="description" content="Symbol-level code reads for AI coding agents. A skeleton, one symbol, a budgeted repo map: whole files stay out of context, prompt caching stays intact. CLI, Claude Code plugin, MCP, and a hosted endpoint agents can pay for per call.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23090C13'/%3E%3Crect x='7' y='7' width='18' height='18' rx='3' fill='%23E6B54C'/%3E%3Crect x='11' y='15' width='10' height='2' fill='%23090C13'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --ink:#090C13; --panel:#111726; --panel2:#19212F; --line:#232C40;
+    --text:#DCE3EE; --muted:#8592A6; --faint:#586479;
+    --seal:#E6B54C; --ring:#7FC7FF; --pass:#55C98A; --danger:#E06550;
+    --mono:ui-monospace,"SF Mono","Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ink);color:var(--text);font-family:var(--sans);line-height:1.6;font-size:17px;-webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(1100px 560px at 82% -14%,rgba(127,199,255,.10),transparent 62%),radial-gradient(760px 520px at 4% 2%,rgba(230,181,76,.06),transparent 58%);}
+  .wrap{max-width:980px;margin:0 auto;padding:0 20px}
+  a{color:var(--seal);text-decoration:none} a:hover{text-decoration:underline}
+  h1,h2,h3{text-wrap:balance;line-height:1.12;margin:0}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--seal);font-weight:600}
+  section{padding:56px 0;border-top:1px solid var(--line)} section.first{border-top:0;padding-top:30px}
+  h1{font-size:clamp(32px,5.4vw,54px);font-weight:800;letter-spacing:-.024em}
+  h2{font-size:clamp(24px,3.4vw,34px);font-weight:780;letter-spacing:-.018em}
+  .lead{max-width:64ch;color:#BAC4D2;margin:14px 0 0}
+  header{padding:22px 0 4px}
+  .topbar{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:11px;font-family:var(--mono);font-weight:600;font-size:17px}
+  .brand .glyph{width:15px;height:15px;border-radius:3px;background:var(--seal);flex:none;position:relative}
+  .brand .glyph::after{content:"";position:absolute;left:3px;right:3px;top:6px;height:2px;background:var(--ink)}
+  .brand small{color:var(--muted);font-weight:400;font-size:13.5px}
+  nav.top{font-family:var(--mono);font-size:13px;display:flex;gap:16px;flex-wrap:wrap}
+  nav.top a{color:var(--muted)} nav.top a:hover{color:var(--seal);text-decoration:none}
+  .heroCta{display:flex;gap:14px;flex-wrap:wrap;margin-top:26px;align-items:center}
+  .btn{display:inline-block;background:var(--ring);color:var(--ink);font-weight:700;padding:11px 18px;border-radius:9px;font-size:14.5px}
+  a.btn:hover{text-decoration:none;filter:brightness(1.08)}
+  .btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line)} a.btn.ghost:hover{border-color:var(--ring);color:var(--ring)}
+  .nums{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:34px} @media (max-width:760px){.nums{grid-template-columns:1fr}}
+  .nums .n{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:14px 16px}
+  .nums .v{font-family:var(--mono);font-size:clamp(19px,2.6vw,26px);font-weight:700;color:var(--seal);font-variant-numeric:tabular-nums}
+  .nums .n.good .v{color:var(--pass)} .nums .k{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.45}
+  pre{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;overflow:auto;font-family:var(--mono);font-size:13.5px;line-height:1.55;margin:16px 0 0;color:#D8E0EC}
+  pre b{color:var(--seal);font-weight:600} pre i{color:var(--faint);font-style:normal}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:22px} @media (max-width:760px){.grid2{grid-template-columns:1fr}}
+  .card{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:18px 20px}
+  .card h3{font-size:16px;color:var(--ring);margin-bottom:8px} .card p{margin:0 0 10px;color:#C6CFDC;font-size:15px}
+  table{width:100%;border-collapse:collapse;margin-top:18px;font-size:15px} th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600} td.mono{font-family:var(--mono);font-size:13.5px}
+  .note{font-size:14px;color:var(--muted);margin-top:12px}
+  footer{padding:30px 0 60px;border-top:1px solid var(--line);font-family:var(--mono);font-size:13px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="topbar">
+  <div class="brand"><span class="glyph"></span>sym<small>/ s2ar</small></div>
+  <nav class="top"><a href="#install">install</a><a href="#agents">for agents</a><a href="#measured">measured</a><a href="#pricing">pricing</a><a href="#docs">docs</a><a href="https://github.com/stardata-foundation/sym">source</a></nav>
+</div></header>
+
+<section class="first hero">
+  <div class="eyebrow">symbol-level code reads</div>
+  <h1>Read the function, not the file.</h1>
+  <p class="lead">Once a whole file is in an agent's context it is replayed on every turn, and nothing that compresses it afterwards can undo that without breaking the prompt cache. <b>sym</b> keeps the file out in the first place: a skeleton, one symbol, or a budgeted map of a directory, parsed with tree-sitter.</p>
+  <div class="heroCta"><a class="btn" href="#install">cargo install sym-cli</a><a class="btn ghost" href="#agents">The 402 flow for agents</a></div>
+  <div class="nums">
+    <div class="n good"><div class="v">/*__COST__*/</div><div class="k">median session cost with the plugin vs without, cache reads billed (<a href="#measured">the whole table</a>)</div></div>
+    <div class="n"><div class="v">7</div><div class="k">languages: Rust, Lua, Python, TypeScript/TSX, JavaScript, Go</div></div>
+    <div class="n"><div class="v">3</div><div class="k">fronts on one core: CLI, MCP over stdio, HTTP for a gateway</div></div>
+  </div>
+</section>
+
+<section id="install">
+  <div class="eyebrow">install</div>
+  <h2>One binary. Three verbs.</h2>
+<pre><b>$</b> cargo install sym-cli            <i># the binary is `sym`</i>
+<b>$</b> sym ls src/ops.rs                <i># every symbol: line range + signature</i>
+src/ops.rs — 271 lines, 14 symbols
+   10-15    pub struct LsOut
+   58-104   pub fn read(file: &amp;Path, symbol: &amp;str) -&gt; Result&lt;ReadOut, String&gt;
+   ...
+<b>$</b> sym read src/ops.rs read         <i># one symbol, with its doc block</i>
+<b>$</b> sym map src/ --budget 800        <i># files ranked by import fan-in, cut at 800 tokens</i></pre>
+  <p class="note">Add <code>--json</code> for structured output and <code>--est</code> for a token estimate. Nested symbols are addressed by leaf or qualified path (<code>Widget::new</code>, <code>Runner.helper</code>, <code>Server.Serve</code>).</p>
+  <div class="grid2">
+    <div class="card"><h3>Claude Code plugin</h3><p>A skill that says when to use which verb, the MCP server, and a hook that nudges any whole-file Read of a big source file toward the skeleton. Silent when sym is not installed.</p>
+<pre><b>$</b> claude plugin marketplace add https://github.com/stardata-foundation/sym
+<b>$</b> claude plugin install sym@sym</pre></div>
+    <div class="card"><h3>Any MCP client</h3><p>Tools <code>sym_ls</code>, <code>sym_read</code>, <code>sym_map</code> over stdio. Same arguments as the CLI; <code>json: true</code> for structured results.</p>
+<pre>{ "sym": { "command": "sym", "args": ["mcp"] } }</pre></div>
+  </div>
+</section>
+
+<section id="agents">
+  <div class="eyebrow">for agents that cannot install a binary</div>
+  <h2>The same verbs over any public repo, paid per call.</h2>
+  <p class="lead">Managed agents, web agents and sandboxes without cargo get <code>map</code> and <code>read</code> over a git URL. The server clones shallowly, caches for an hour, and answers in the same shape as the CLI. Payment is the HTTP 402 handshake, in three rails ordered by how autonomous the agent can be.</p>
+<pre><b>POST</b> https://sym.s2ar.dev/v1/sym/map
+{ "repo": "https://github.com/BurntSushi/ripgrep", "ref": "14.1.1", "budget": 1200 }
+
+<i>← 402 Payment Required</i>
+WWW-Authenticate: Payment …                 <i># Stripe Machine Payments Protocol (cards via SPT, USDC via Tempo)</i>
+{ "x402Version": 1, "accepts": [ … ] }      <i># x402: USDC on Base, no account</i>
+{ "checkout_url": "https://buy.stripe.com/…" }   <i># a human buys a credit pack; the key goes in Authorization: Bearer</i></pre>
+  <table>
+    <tr><th>rail</th><th>who pays</th><th>autonomy</th><th>minimum</th></tr>
+    <tr><td class="mono">Authorization: Bearer sk-…</td><td>a human bought credits once</td><td>full, after the first purchase</td><td>$5 pack</td></tr>
+    <tr><td class="mono">X-PAYMENT (x402)</td><td>the agent's USDC wallet on Base</td><td>full</td><td>$0.005</td></tr>
+    <tr><td class="mono">Authorization: Payment (MPP, Tempo)</td><td>the agent's USDC wallet on Tempo, settled by Stripe</td><td>full</td><td>$0.01</td></tr>
+    <tr><td class="mono">Authorization: Payment (MPP, card)</td><td>the human's card through the Link agent wallet</td><td>one approval tap per spend, by Link's design</td><td>$0.50</td></tr>
+  </table>
+  <p class="note">The agent-side skill for cards is <code>npx skills add stripe/link-cli</code>. Test mode works end to end with a sandbox key. Nothing is charged for a failed request.</p>
+</section>
+
+<section id="measured">
+  <div class="eyebrow">measured, not claimed</div>
+  <h2>Session cost, cache reads billed.</h2>
+  <p class="lead">Token-reduction numbers measured on one payload say little about what a session costs; several context compressors cost more than running nothing once caching is counted. So the number on this page is the median cost of a fixed task list run as fresh sessions with and without the plugin, on a pinned public repo, cache reads billed, losses included.</p>
+  <div id="benchTable">/*__BENCH__*/</div>
+  <p class="note">The harness is <code>bench/run.py</code> in the repo. Run it on your own repo; the table above regenerates from <code>bench/results/latest.json</code>.</p>
+</section>
+
+<section id="pricing">
+  <div class="eyebrow">pricing</div>
+  <h2>Free where it runs on your machine. Cents where we run it.</h2>
+  <div class="grid2">
+    <div class="card"><h3>Local: free</h3><p>The CLI, the Claude Code plugin and the MCP server. Source-available under PolyForm Shield 1.0.0: read it, build it, self-host it.</p></div>
+    <div class="card"><h3>Hosted: per call</h3><p><code>/v1/sym/map</code> $0.01 · <code>/v1/sym/read</code> $0.005. Credit packs of $5, $25 and $100 through Stripe, or pay per call from a wallet. One ledger for every s2ar API; credits you buy for sym also pay for <a href="https://s2ar.dev">starlens</a> certificates.</p></div>
+  </div>
+</section>
+
+<section id="docs">
+  <div class="eyebrow">docs</div>
+  <h2>What each front returns.</h2>
+  <table>
+    <tr><th>front</th><th>call</th><th>returns</th></tr>
+    <tr><td class="mono">CLI</td><td class="mono">sym ls | read | map [--json] [--est]</td><td>the legacy text, or JSON with <code>tokens_est</code></td></tr>
+    <tr><td class="mono">MCP (stdio)</td><td class="mono">sym_ls {file} · sym_read {file,symbol} · sym_map {dir,budget}</td><td>one text content block; failures are <code>isError</code>, never protocol errors</td></tr>
+    <tr><td class="mono">HTTP (local)</td><td class="mono">sym serve --port 8431 --root DIR → POST /ls /read /map</td><td><code>{ok, text, data, tokens_est}</code>; every path jailed under the root</td></tr>
+    <tr><td class="mono">HTTP (hosted)</td><td class="mono">POST /v1/sym/map {repo,ref,budget} · /v1/sym/read {repo,ref,file,symbol}</td><td>the same, plus <code>charged_usd</code>; 402 with all rails when unpaid</td></tr>
+    <tr><td class="mono">hook</td><td class="mono">sym hook pre</td><td>PreToolUse <code>additionalContext</code> for a big-file Read; exit 0 always</td></tr>
+  </table>
+  <p class="note">The repo map ranks files by how often others import them and emits top-level signatures until the budget is spent. Heuristic fan-in today; PageRank is the obvious next step and is on the list.</p>
+</section>
+
+<footer>
+  <div>sym · <a href="https://s2ar.dev">s2ar</a> · operated by Stardata (Cody Lee Walker, Canada)</div>
+  <div><a href="/sym/privacy.html">privacy</a> · <a href="/sym/terms.html">terms</a> · <a href="/sym/llms.txt">llms.txt</a> · <a href="mailto:cody@stardata.foundation">contact</a></div>
+</footer>
+</div>
+</body>
+</html>

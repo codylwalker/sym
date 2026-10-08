@@ -1,0 +1,44 @@
+# Fixed questions for the sym benchmark. Each is answerable by reading two to
+# four functions of the pinned repo; none needs a whole-file read. The point of
+# the bench is SESSION COST (cache reads billed), not a token-reduction number.
+
+[repo]
+url = "https://github.com/BurntSushi/ripgrep"
+ref = "14.1.1"
+# Secondary repos (one Go, one TypeScript) run when --all is given.
+extra = [
+  { url = "https://github.com/junegunn/fzf", ref = "v0.65.1", lang = "go" },
+  { url = "https://github.com/sindresorhus/execa", ref = "v9.6.0", lang = "ts" },
+]
+
+[[task]]
+id = "rg-args-glob"
+prompt = "In this ripgrep checkout: which function parses the --glob flag into the search config, and what does it do when the pattern starts with '!'? Cite file and function."
+
+[[task]]
+id = "rg-binary-detect"
+prompt = "How does ripgrep decide a file is binary while searching? Name the function and the byte it looks for."
+
+[[task]]
+id = "rg-ignore-order"
+prompt = "In what order are .gitignore, .ignore and .rgignore applied, and which function implements that precedence?"
+
+[[task]]
+id = "rg-max-count"
+prompt = "What happens inside the searcher when --max-count is reached mid-file? Name the function that stops the search."
+
+[[task]]
+id = "rg-color-spec"
+prompt = "How is a --colors spec like 'match:fg:red' parsed? Name the function and list the four parts it accepts."
+
+[[task]]
+id = "rg-stdin-detect"
+prompt = "How does ripgrep decide whether to read from stdin instead of searching the tree? Name the function and the conditions."
+
+[[task]]
+id = "rg-json-begin"
+prompt = "Which function emits the JSON 'begin' message in --json output and what fields does it carry?"
+
+[[task]]
+id = "rg-sort-flag"
+prompt = "What does --sort=modified do at the walker level, and which function sorts the entries?"

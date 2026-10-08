@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+"""Build and deploy the sym site (mirror of starlens/tools/deploy_site.py).
+
+    python3 tools/deploy_site.py --build-only     # writes site/_deploy.html
+    python3 tools/deploy_site.py                  # build + scp to the box
+
+Fills /*__COST__*/ and /*__BENCH__*/ in site/index.html from
+bench/results/latest.json (placeholders stay honest when there is no result:
+"not yet measured"). Parses as Python 3.10."""
+from __future__ import annotations
+
+import html
+import json
+import os
+import subprocess
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)
+SITE = os.path.join(ROOT, "site")
+HOST = os.environ.get("SYM_DEPLOY_HOST", "staros@10.42.0.5")
+DESTDIR = os.environ.get("SYM_DEPLOY_DEST", "/srv/stardata/site/sym")
+KEY = os.environ.get("SYM_DEPLOY_KEY", os.path.expanduser("~/.ssh/staros-work1"))
+EXTRA = ["privacy.html", "terms.html", "llms.txt"]
+
+
+def bench_bits() -> tuple[str, str]:
+    path = os.path.join(ROOT, "bench", "results", "latest.json")
+    if not os.path.exists(path):
+        return "not yet measured", '<p class="note">No benchmark result has been published yet. The harness is in the repo; the first table lands here.</p>'
+    j = json.load(open(path, encoding="utf-8"))
+    s = j.get("summary") or {}
+    d = s.get("delta_median_cost_pct")
+    cost = ("%+.0f%%" % d) if d is not None else "n/a"
+    md = os.path.join(ROOT, "bench", "results", j["stamp"] + ".md")
+    rows = []
+    for r in sorted(j.get("rows") or [], key=lambda r: (r["task"], r["arm"], r.get("run", 0))):
+        if r.get("cost_usd") is None:
+            continue
+        rows.append("<tr><td class=\"mono\">%s</td><td>%s</td><td class=\"mono\">%.4f</td><td class=\"mono\">%s</td><td class=\"mono\">%s</td><td class=\"mono\">%s</td></tr>" % (
+            html.escape(r["task"]), r["arm"], r["cost_usd"], r.get("input"), r.get("cache_read"), r.get("turns")))
+    table = ("<table><tr><th>task</th><th>arm</th><th>cost USD</th><th>input</th><th>cache read</th><th>turns</th></tr>%s</table>"
+             "<p class=\"note\">%s on %s@%s, %d runs per cell, model %s. Full file: <code>bench/results/%s.json</code>.</p>") % (
+        "".join(rows), html.escape(j["stamp"]), html.escape(j["repo"]["url"]), html.escape(j["repo"]["ref"]),
+        j.get("runs", 0), html.escape(j.get("model", "")), html.escape(j["stamp"]))
+    _ = md
+    return cost, table
+
+
+def build() -> str:
+    src = open(os.path.join(SITE, "index.html"), encoding="utf-8").read()
+    cost, table = bench_bits()
+    out = src.replace("/*__COST__*/", html.escape(cost)).replace("/*__BENCH__*/", table)
+    dest = os.path.join(SITE, "_deploy.html")
+    open(dest, "w", encoding="utf-8").write(out)
+    return dest
+
+
+def main() -> int:
+    out = build()
+    print("built", out)
+    if "--build-only" in sys.argv:
+        return 0
+    subprocess.run(["ssh", "-i", KEY, HOST, "mkdir -p %s" % DESTDIR], check=True)
+    subprocess.run(["scp", "-i", KEY, "-q", out, "%s:%s/index.html" % (HOST, DESTDIR)], check=True)
+    for name in EXTRA:
+        subprocess.run(["scp", "-i", KEY, "-q", os.path.join(SITE, name), "%s:%s/%s" % (HOST, DESTDIR, name)], check=True)
+    print("deployed ->", HOST + ":" + DESTDIR)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

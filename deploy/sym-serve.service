@@ -1,0 +1,18 @@
+[Unit]
+Description=sym serve — symbol-level code reads over loopback HTTP (fronted by starlens /v1/sym/*)
+After=network-online.target
+
+[Service]
+Type=simple
+User=__USER__
+ExecStart=/usr/local/bin/sym serve --port 8431 --root /var/lib/starlens/sym-cache
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadOnlyPaths=/var/lib/starlens/sym-cache
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

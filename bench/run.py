@@ -1,0 +1,245 @@
+#!/usr/bin/env python3
+"""sym benchmark: session cost with and without the plugin, cache reads billed.
+
+Runs each task in bench/tasks.toml as a fresh headless Claude Code session,
+in two arms:
+  plain   — stock session (no plugin)
+  plugin  — with --plugin-dir ../plugin (the hook, the skill, the MCP server)
+N runs per cell, same checkout, same model. Collects total_cost_usd, the four
+token counts, num_turns, and the tool mix from the session transcript. Writes
+bench/results/<date>.json and a Markdown table beside it. Publishes losses too.
+
+Parses as Python 3.10 (no nested f-string expressions, no tomllib).
+
+    python3 bench/run.py --dry           # print the plan, run nothing
+    python3 bench/run.py --runs 3        # the real thing (~N*tasks*2 sessions)
+"""
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import json
+import os
+import re
+import shutil
+import statistics
+import subprocess
+import sys
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+PLUGIN = os.path.join(os.path.dirname(HERE), "plugin")
+CHECKOUTS = os.path.join(HERE, "checkouts")
+RESULTS = os.path.join(HERE, "results")
+
+
+# ── tiny TOML reader (only the subset tasks.toml uses) ───────────────────────
+def read_tasks(path: str) -> tuple[dict, list[dict]]:
+    repo: dict = {}
+    tasks: list[dict] = []
+    cur: dict | None = None
+    section = ""
+    for raw in open(path, encoding="utf-8"):
+        line = raw.split("#", 1)[0].strip() if not raw.strip().startswith("#") else ""
+        if not line:
+            continue
+        if line == "[repo]":
+            section = "repo"
+            cur = repo
+            continue
+        if line == "[[task]]":
+            section = "task"
+            cur = {}
+            tasks.append(cur)
+            continue
+        m = re.match(r'^(\w+)\s*=\s*(.*)$', line)
+        if not m or cur is None:
+            continue
+        key, val = m.group(1), m.group(2).strip()
+        if val.startswith('"'):
+            cur[key] = json.loads(val)
+        elif val.startswith("["):
+            # inline table list: keep it as raw text; parsed lazily by --all
+            cur[key] = val
+        else:
+            cur[key] = val
+    return repo, tasks
+
+
+def sh(cmd: list[str], cwd: str | None = None, timeout: int = 900) -> subprocess.CompletedProcess:
+    return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=timeout)
+
+
+def ensure_checkout(url: str, ref: str) -> str:
+    name = url.rstrip("/").rsplit("/", 1)[-1]
+    dest = os.path.join(CHECKOUTS, "%s-%s" % (name, ref))
+    if not os.path.isdir(dest):
+        os.makedirs(CHECKOUTS, exist_ok=True)
+        r = sh(["git", "clone", "--depth", "1", "--branch", ref, "--single-branch", url, dest])
+        if r.returncode != 0:
+            sys.exit("clone failed: " + r.stderr[-400:])
+    return dest
+
+
+def claude_bin() -> str:
+    for c in (os.environ.get("CLAUDE_BIN"), "/Users/john_walker/.npm-global/bin/claude",
+              shutil.which("claude")):
+        if c and os.path.exists(c):
+            return c
+    sys.exit("no claude binary found; set CLAUDE_BIN")
+
+
+def run_one(task: dict, arm: str, cwd: str, model: str) -> dict:
+    cmd = [claude_bin(), "-p", task["prompt"], "--output-format", "json", "--model", model,
+           "--permission-mode", "default"]
+    if arm == "plugin":
+        cmd += ["--plugin-dir", PLUGIN]
+    env = dict(os.environ)
+    env.pop("CLAUDECODE", None)  # a nested session must not inherit the parent's flags
+    t0 = time.time()
+    r = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=900, env=env)
+    wall = time.time() - t0
+    out: dict = {"task": task["id"], "arm": arm, "wall_s": round(wall, 1), "rc": r.returncode}
+    try:
+        j = json.loads(r.stdout)
+    except ValueError:
+        out["error"] = (r.stderr or r.stdout)[-400:]
+        return out
+    usage = j.get("usage") or {}
+    out.update({
+        "cost_usd": j.get("total_cost_usd"),
+        "turns": j.get("num_turns"),
+        "input": usage.get("input_tokens"),
+        "output": usage.get("output_tokens"),
+        "cache_create": usage.get("cache_creation_input_tokens"),
+        "cache_read": usage.get("cache_read_input_tokens"),
+        "session_id": j.get("session_id"),
+        "answer": (j.get("result") or "")[:600],
+    })
+    out["tools"] = tool_mix(j.get("session_id"))
+    return out
+
+
+def tool_mix(session_id: str | None) -> dict:
+    """Count Read vs sym tool calls from the session transcript, when found."""
+    mix: dict = {"Read": 0, "sym_bash": 0, "sym_mcp": 0, "other": 0}
+    if not session_id:
+        return mix
+    home = os.path.expanduser("~")
+    for root, _dirs, files in os.walk(os.path.join(home, ".claude", "projects")):
+        for f in files:
+            if f.startswith(session_id) and f.endswith(".jsonl"):
+                for line in open(os.path.join(root, f), encoding="utf-8", errors="replace"):
+                    if '"tool_use"' not in line:
+                        continue
+                    try:
+                        ev = json.loads(line)
+                    except ValueError:
+                        continue
+                    for block in (ev.get("message") or {}).get("content") or []:
+                        if block.get("type") != "tool_use":
+                            continue
+                        name = block.get("name", "")
+                        if name == "Read":
+                            mix["Read"] += 1
+                        elif name.startswith("mcp__sym__"):
+                            mix["sym_mcp"] += 1
+                        elif name == "Bash" and re.search(r"(^|\s)(rtk\s+)?sym\s", (block.get("input") or {}).get("command", "")):
+                            mix["sym_bash"] += 1
+                        else:
+                            mix["other"] += 1
+                return mix
+    return mix
+
+
+def summarize(rows: list[dict]) -> dict:
+    by: dict = {}
+    for r in rows:
+        if r.get("cost_usd") is None:
+            continue
+        by.setdefault(r["arm"], []).append(r)
+    summary: dict = {}
+    for arm, rs in by.items():
+        summary[arm] = {
+            "n": len(rs),
+            "cost_median": statistics.median(r["cost_usd"] for r in rs),
+            "cost_mean": statistics.fmean(r["cost_usd"] for r in rs),
+            "cache_read_median": statistics.median(r["cache_read"] or 0 for r in rs),
+            "input_median": statistics.median(r["input"] or 0 for r in rs),
+            "turns_median": statistics.median(r["turns"] or 0 for r in rs),
+            "reads": sum(r["tools"]["Read"] for r in rs),
+            "sym_calls": sum(r["tools"]["sym_bash"] + r["tools"]["sym_mcp"] for r in rs),
+        }
+    if "plain" in summary and "plugin" in summary:
+        a, b = summary["plain"]["cost_median"], summary["plugin"]["cost_median"]
+        summary["delta_median_cost_pct"] = round((b - a) / a * 100.0, 1) if a else None
+    return summary
+
+
+def table(rows: list[dict], summary: dict) -> str:
+    lines = ["| task | arm | cost USD | input | cache read | turns | Read | sym |", "|---|---|---|---|---|---|---|---|"]
+    for r in sorted(rows, key=lambda r: (r["task"], r["arm"])):
+        if r.get("cost_usd") is None:
+            lines.append("| %s | %s | error | | | | | |" % (r["task"], r["arm"]))
+            continue
+        lines.append("| %s | %s | %.4f | %s | %s | %s | %s | %s |" % (
+            r["task"], r["arm"], r["cost_usd"], r["input"], r["cache_read"], r["turns"],
+            r["tools"]["Read"], r["tools"]["sym_bash"] + r["tools"]["sym_mcp"]))
+    lines.append("")
+    for arm in ("plain", "plugin"):
+        s = summary.get(arm)
+        if s:
+            lines.append("**%s**: n=%d · median cost %.4f · mean %.4f · median cache read %s · median turns %s · Reads %d · sym calls %d" % (
+                arm, s["n"], s["cost_median"], s["cost_mean"], s["cache_read_median"], s["turns_median"], s["reads"], s["sym_calls"]))
+    d = summary.get("delta_median_cost_pct")
+    if d is not None:
+        lines.append("")
+        lines.append("**Median session cost, plugin vs plain: %+.1f%%** (negative = cheaper). Cache reads are billed; losses are in the table." % d)
+    return "\n".join(lines) + "\n"
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--runs", type=int, default=3)
+    ap.add_argument("--model", default="claude-sonnet-5")
+    ap.add_argument("--dry", action="store_true")
+    ap.add_argument("--only", help="comma-separated task ids")
+    args = ap.parse_args()
+    repo, tasks = read_tasks(os.path.join(HERE, "tasks.toml"))
+    if args.only:
+        keep = set(args.only.split(","))
+        tasks = [t for t in tasks if t["id"] in keep]
+    plan = ["%s × %s × %d runs on %s@%s (model %s)" % (len(tasks), "{plain,plugin}", args.runs, repo["url"], repo["ref"], args.model)]
+    print("\n".join(plan))
+    if args.dry:
+        for t in tasks:
+            print(" ", t["id"], "—", t["prompt"][:70])
+        return 0
+    cwd = ensure_checkout(repo["url"], repo["ref"])
+    rows: list[dict] = []
+    stamp = dt.datetime.utcnow().strftime("%Y-%m-%dT%H%MZ")
+    os.makedirs(RESULTS, exist_ok=True)
+    for i in range(args.runs):
+        for t in tasks:
+            for arm in ("plain", "plugin"):
+                r = run_one(t, arm, cwd, args.model)
+                r["run"] = i
+                rows.append(r)
+                print("%-18s %-7s run %d  cost %s  turns %s  tools %s" % (
+                    t["id"], arm, i, r.get("cost_usd"), r.get("turns"), r.get("tools")))
+                with open(os.path.join(RESULTS, stamp + ".jsonl"), "a", encoding="utf-8") as f:
+                    f.write(json.dumps(r) + "\n")
+    summary = summarize(rows)
+    out = {"stamp": stamp, "repo": repo, "model": args.model, "runs": args.runs, "summary": summary, "rows": rows}
+    with open(os.path.join(RESULTS, stamp + ".json"), "w", encoding="utf-8") as f:
+        json.dump(out, f, indent=1)
+    with open(os.path.join(RESULTS, stamp + ".md"), "w", encoding="utf-8") as f:
+        f.write(table(rows, summary))
+    with open(os.path.join(RESULTS, "latest.json"), "w", encoding="utf-8") as f:
+        json.dump(out, f, indent=1)
+    print(table(rows, summary))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terms of Service — sym</title>
+<meta name="description" content="Terms for the starlens certified image-compression service.">
+<style>
+  :root{--ink:#090C13;--panel:#111726;--line:#232C40;--text:#DCE3EE;--muted:#95A1B4;--faint:#586479;
+    --seal:#E6B54C;--ring:#7FC7FF;
+    --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ink);color:var(--text);font-family:var(--sans);line-height:1.7;font-size:17px;
+    -webkit-font-smoothing:antialiased;background-image:radial-gradient(900px 500px at 85% -10%,rgba(127,199,255,.07),transparent 60%);}
+  .wrap{max-width:720px;margin:0 auto;padding:0 24px 80px}
+  a{color:var(--seal);text-decoration:none}a:hover{text-decoration:underline}
+  header{padding:26px 0;border-bottom:1px solid var(--line);margin-bottom:40px}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-weight:600;font-size:15px}
+  .brand .lens{width:13px;height:13px;border-radius:50%;border:2px solid var(--ring);box-shadow:0 0 8px rgba(127,199,255,.6)}
+  .brand small{color:var(--muted);font-weight:400}
+  h1{font-size:32px;font-weight:800;letter-spacing:-.02em;margin:0 0 6px}
+  .meta{font-family:var(--mono);font-size:12.5px;color:var(--faint);letter-spacing:.03em;margin-bottom:30px}
+  h2{font-size:16px;font-weight:700;color:var(--ring);margin:34px 0 8px;letter-spacing:.01em}
+  p{margin:0 0 14px;color:#C6CFDC}
+  ul{margin:0 0 14px;padding-left:20px;color:#C6CFDC}li{margin:6px 0}
+  strong{color:var(--text)}
+  .lead{font-size:19px;color:#D6DEEA}
+  footer{margin-top:48px;padding-top:22px;border-top:1px solid var(--line);font-family:var(--mono);font-size:13px;color:var(--muted);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><div class="brand"><span class="lens"></span>sym<small>/ Stardata</small></div></header>
+
+  <h1>Terms of Service</h1>
+  <div class="meta">Effective 2026-10-08 · s2ar.dev</div>
+
+  <p class="lead">These terms govern use of the starlens certified image-compression service (the
+    "Service"), operated by Stardata (Cody Lee Walker, Canada).</p>
+
+  <h2>The Service</h2>
+  <p>starlens accepts image(s) and returns a compressed image plus a sealed <strong>certificate</strong>.
+    The certificate is a <em>measurement</em> — a deterministic witness, calibrated against real vision
+    models, indicating that the compressed image preserves the reader-relevant content up to a stated
+    tolerance. It is strong, re-verifiable evidence, <strong>not an absolute warranty</strong>: it does
+    not guarantee that every downstream model on every prompt returns a byte-identical answer. Use it as
+    the signal it is.</p>
+
+  <h2>Your responsibilities</h2>
+  <ul>
+    <li>You must have the right to submit the images you send.</li>
+    <li>Do not submit unlawful content, including CSAM or material that infringes others' rights.</li>
+    <li>Do not attempt to disrupt, overload, or circumvent the Service's authentication or rate limits,
+      or to reverse-engineer the certificate mechanism from the Service.</li>
+  </ul>
+
+  <h2>Intellectual property</h2>
+  <p>You retain all rights in the images you submit. Stardata retains all rights in the hosted Service,
+    the certificate method, and the site. The underlying compression engine is open source under its
+    published license; these terms cover the hosted Service.</p>
+
+  <h2>Disclaimers &amp; liability</h2>
+  <p>The Service is provided "as is", without warranties of any kind. To the maximum extent permitted by
+    law, Stardata's total liability arising from the Service is limited to the fees you paid for the
+    Service in the three months preceding the claim.</p>
+
+  <h2>Termination</h2>
+  <p>Either party may stop using or providing the Service at any time. Provisions on intellectual
+    property, disclaimers, and liability survive.</p>
+
+  <h2>Governing law</h2>
+  <p>These terms are governed by the laws of the Province of Ontario and the applicable laws of Canada.</p>
+
+  <h2>Changes &amp; contact</h2>
+  <p>We may update these terms; material changes will be posted here with a new effective date. Questions:
+    <a href="mailto:cody@stardata.foundation">cody@stardata.foundation</a>.</p>
+
+  <footer>
+    <a href="/starlens/">← starlens</a>
+    <span><a href="/privacy.html">Privacy Policy</a> · cody@stardata.foundation</span>
+  </footer>
+</div>
+</body>
+</html>
