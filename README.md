@@ -79,9 +79,12 @@ claude mcp add --transport http sym-hosted https://api.s2ar.dev/mcp \
   --header "Authorization: Bearer <key>"
 ```
 
-Tools: `sym_map_repo`, `sym_ls_repo`, `sym_read_repo`, and `buy_credits`, which
-returns the payment link an agent with a Link wallet can pay (Stripe's
-"monetize your MCP server" pattern). See the site for the 402 flow.
+Tools: `sym_map_repo`, `sym_ls_repo`, `sym_read_repo`, `sym_find_repo`,
+`sym_where_repo` (code by meaning: the first call on a repository starts its
+semantic index on our GPU and answers "indexing"; call again in a moment),
+and `buy_credits`, which returns the payment link an agent with a Link wallet
+can pay (Stripe's "monetize your MCP server" pattern). See the site for the
+402 flow.
 
 ## Measurement
 
