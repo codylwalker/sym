@@ -136,33 +136,45 @@ def run_one(task: dict, arm: str, cwd: str, model: str) -> dict:
 
 def tool_mix(session_id: str | None) -> dict:
     """Count Read vs sym tool calls from the session transcript, when found."""
-    mix: dict = {"Read": 0, "sym_bash": 0, "sym_mcp": 0, "other": 0}
+    # Only calls that RAN count: a permission-denied or failed call leaves a
+    # tool_result with is_error, and must not be scored as a use of the tool.
+    mix: dict = {"Read": 0, "sym_bash": 0, "sym_mcp": 0, "other": 0, "denied": 0}
     if not session_id:
         return mix
     home = os.path.expanduser("~")
     for root, _dirs, files in os.walk(os.path.join(home, ".claude", "projects")):
         for f in files:
-            if f.startswith(session_id) and f.endswith(".jsonl"):
-                for line in open(os.path.join(root, f), encoding="utf-8", errors="replace"):
-                    if '"tool_use"' not in line:
-                        continue
-                    try:
-                        ev = json.loads(line)
-                    except ValueError:
-                        continue
-                    for block in (ev.get("message") or {}).get("content") or []:
-                        if block.get("type") != "tool_use":
-                            continue
-                        name = block.get("name", "")
-                        if name == "Read":
-                            mix["Read"] += 1
-                        elif name.startswith("mcp__") and name.rsplit("__", 1)[-1] in ("sym_ls", "sym_read", "sym_map"):
-                            mix["sym_mcp"] += 1
-                        elif name == "Bash" and re.search(r"(^|\s)(rtk\s+)?sym\s", (block.get("input") or {}).get("command", "")):
-                            mix["sym_bash"] += 1
-                        else:
-                            mix["other"] += 1
-                return mix
+            if not (f.startswith(session_id) and f.endswith(".jsonl")):
+                continue
+            uses: dict = {}
+            errored: set = set()
+            for line in open(os.path.join(root, f), encoding="utf-8", errors="replace"):
+                if '"tool_use"' not in line and '"tool_result"' not in line:
+                    continue
+                try:
+                    ev = json.loads(line)
+                except ValueError:
+                    continue
+                for block in (ev.get("message") or {}).get("content") or []:
+                    if block.get("type") == "tool_use":
+                        uses[block.get("id")] = block
+                    elif block.get("type") == "tool_result" and block.get("is_error"):
+                        errored.add(block.get("tool_use_id"))
+            for uid, block in uses.items():
+                if uid in errored:
+                    mix["denied"] += 1
+                    continue
+                name = block.get("name", "")
+                cmd = (block.get("input") or {}).get("command", "")
+                if name == "Read":
+                    mix["Read"] += 1
+                elif name.startswith("mcp__") and name.rsplit("__", 1)[-1] in ("sym_ls", "sym_read", "sym_map"):
+                    mix["sym_mcp"] += 1
+                elif name == "Bash" and re.search(r"(^|\s)(rtk\s+)?(staros\s+)?sym\s", cmd):
+                    mix["sym_bash"] += 1
+                else:
+                    mix["other"] += 1
+            return mix
     return mix
 
 
@@ -187,6 +199,24 @@ def summarize(rows: list[dict]) -> dict:
     if "plain" in summary and "plugin" in summary:
         a, b = summary["plain"]["cost_median"], summary["plugin"]["cost_median"]
         summary["delta_median_cost_pct"] = round((b - a) / a * 100.0, 1) if a else None
+        # The headline: per task, the median cost of each arm, then the median of
+        # those paired deltas. Pooling tasks of different sizes would let the
+        # expensive tasks move the number on their own.
+        per_task: dict = {}
+        for r in rows:
+            if r.get("cost_usd") is None:
+                continue
+            per_task.setdefault(r["task"], {}).setdefault(r["arm"], []).append(r["cost_usd"])
+        deltas = []
+        for t, arms in per_task.items():
+            if "plain" in arms and "plugin" in arms:
+                pa, pb = statistics.median(arms["plain"]), statistics.median(arms["plugin"])
+                if pa:
+                    deltas.append(round((pb - pa) / pa * 100.0, 1))
+        summary["paired_task_deltas_pct"] = dict(zip(sorted(per_task), deltas)) if len(deltas) == len(per_task) else deltas
+        summary["headline_pct"] = round(statistics.median(deltas), 1) if deltas else None
+        summary["tasks_cheaper"] = sum(1 for d in deltas if d < 0)
+        summary["tasks_total"] = len(deltas)
     return summary
 
 
@@ -205,10 +235,11 @@ def table(rows: list[dict], summary: dict) -> str:
         if s:
             lines.append("**%s**: n=%d · median cost %.4f · mean %.4f · median cache read %s · median turns %s · Reads %d · sym calls %d" % (
                 arm, s["n"], s["cost_median"], s["cost_mean"], s["cache_read_median"], s["turns_median"], s["reads"], s["sym_calls"]))
-    d = summary.get("delta_median_cost_pct")
+    d = summary.get("headline_pct")
     if d is not None:
         lines.append("")
-        lines.append("**Median session cost, plugin vs plain: %+.1f%%** (negative = cheaper). Cache reads are billed; losses are in the table." % d)
+        lines.append("**Median of per-task paired cost deltas, plugin vs plain: %+.1f%%; cheaper on %d of %d tasks** (negative = cheaper). Pooled median delta %+.1f%%. Cache reads are billed; losses are in the table." % (
+            d, summary.get("tasks_cheaper", 0), summary.get("tasks_total", 0), summary.get("delta_median_cost_pct") or 0.0))
     return "\n".join(lines) + "\n"
 
 

@@ -30,7 +30,7 @@ def bench_bits() -> tuple[str, str]:
         return "not yet measured", '<p class="note">No benchmark result has been published yet. The harness is in the repo; the first table lands here.</p>'
     j = json.load(open(path, encoding="utf-8"))
     s = j.get("summary") or {}
-    d = s.get("delta_median_cost_pct")
+    d = s.get("headline_pct", s.get("delta_median_cost_pct"))
     cost = ("%+.0f%%" % d) if d is not None else "n/a"
     md = os.path.join(ROOT, "bench", "results", j["stamp"] + ".md")
     rows = []
@@ -40,9 +40,9 @@ def bench_bits() -> tuple[str, str]:
         rows.append("<tr><td class=\"mono\">%s</td><td>%s</td><td class=\"mono\">%.4f</td><td class=\"mono\">%s</td><td class=\"mono\">%s</td><td class=\"mono\">%s</td></tr>" % (
             html.escape(r["task"]), r["arm"], r["cost_usd"], r.get("input"), r.get("cache_read"), r.get("turns")))
     table = ("<table><tr><th>task</th><th>arm</th><th>cost USD</th><th>input</th><th>cache read</th><th>turns</th></tr>%s</table>"
-             "<p class=\"note\">%s on %s@%s, %d runs per cell, model %s. Full file: <code>bench/results/%s.json</code>.</p>") % (
+             "<p class=\"note\">%s on %s@%s, %d runs per cell, model %s. Headline = median of per-task paired deltas (cheaper on %s of %s tasks); pooled median delta %s%%. Full file: <code>bench/results/%s.json</code>.</p>") % (
         "".join(rows), html.escape(j["stamp"]), html.escape(j["repo"]["url"]), html.escape(j["repo"]["ref"]),
-        j.get("runs", 0), html.escape(j.get("model", "")), html.escape(j["stamp"]))
+        j.get("runs", 0), html.escape(j.get("model", "")), s.get("tasks_cheaper", "?"), s.get("tasks_total", "?"), s.get("delta_median_cost_pct", "?"), html.escape(j["stamp"]))
     _ = md
     return cost, table
 
