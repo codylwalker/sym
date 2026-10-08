@@ -51,7 +51,7 @@ pub fn handle(method: &str, url: &str, body: &str, root: Option<&Path>) -> (u16,
         return (200, json!({"ok": true, "service": "sym", "version": env!("CARGO_PKG_VERSION")}).to_string());
     }
     if method != "POST" {
-        return (405, json!({"ok": false, "error": "POST /ls, /read, /find, /map or GET /healthz"}).to_string());
+        return (405, json!({"ok": false, "error": "POST /ls, /read, /find, /map, /where or GET /healthz"}).to_string());
     }
     let args: Value = match serde_json::from_str(if body.is_empty() { "{}" } else { body }) {
         Ok(v) => v,
@@ -82,6 +82,25 @@ pub fn handle(method: &str, url: &str, body: &str, root: Option<&Path>) -> (u16,
             let budget = args.get("budget").and_then(Value::as_u64).unwrap_or(1000) as usize;
             let o = ops::map(&d, budget)?;
             Ok((render::map_text(&o), serde_json::to_value(&o).map_err(|e| e.to_string())?))
+        }
+        "/where" => {
+            // The index lives beside its checkout (`<dir>.index` by default);
+            // the query is embedded by the same service that built it unless
+            // `embed_url` says otherwise. Fast: one embedding and a cosine pass.
+            let idx = match s("index") {
+                Some(i) => jail(root, i)?,
+                None => {
+                    let d = jail(root, s("dir").ok_or("needs `dir` or `index`")?)?;
+                    jail(root, &format!("{}.index", d.display()))?
+                }
+            };
+            let query = s("query").ok_or("needs `query`")?;
+            let k = args.get("k").and_then(Value::as_u64).unwrap_or(8) as usize;
+            let hybrid = args.get("hybrid").and_then(Value::as_bool).unwrap_or(true);
+            let model = s("embed_model").unwrap_or("");
+            let embed = s("embed_url").map(|u| (u, model));
+            let o = crate::index::find_where(&idx, query, k, embed, hybrid)?;
+            Ok((crate::index::where_text(&o), serde_json::to_value(&o).map_err(|e| e.to_string())?))
         }
         _ => Err(format!("no route {path}")),
     })();
@@ -138,5 +157,13 @@ mod tests {
         assert_eq!(st, 200, "{body}");
         let (st, _) = handle("PUT", "/ls", "", None);
         assert_eq!(st, 405);
+        // No index beside the checkout: a clean 404, never a crash.
+        let (st, body) = handle("POST", "/where", r#"{"dir":".","query":"anything"}"#, Some(&root));
+        assert_eq!(st, 404, "{body}");
+        let out = tempfile::tempdir().unwrap();
+        let req = json!({"index": out.path().display().to_string(), "query": "x"}).to_string();
+        let (st, body) = handle("POST", "/where", &req, Some(&root));
+        assert_eq!(st, 400, "{body}");
+        assert!(body.contains("outside the served root"));
     }
 }
