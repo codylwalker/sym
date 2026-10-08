@@ -10,7 +10,7 @@ of the session. Tools that compress or rewrite context after the fact break
 the provider's prompt cache and often cost more than they save. `sym` keeps the
 file out in the first place.
 
-Languages: Rust, Lua, Python, TypeScript/TSX, JavaScript, Go.
+Languages: Rust, Lua, Python, TypeScript/TSX, JavaScript, Go, C, C++, Java, Ruby.
 
 ## Install
 
@@ -23,7 +23,7 @@ cargo install sym-cli        # the binary is `sym`
 ```
 sym ls <file>                    # every symbol: line range + one-line signature
 sym read <file> <symbol>         # one symbol's source with its doc block
-sym map <dir> [--budget 1000]    # per-file signatures, ranked by import fan-in
+sym map <dir> [--budget 1000]    # per-file signatures, files ranked by PageRank over the import graph
 ```
 
 Add `--json` for structured output and `--est` for a token estimate.
@@ -66,9 +66,18 @@ pointing at the skeleton. It never blocks.
 
 ## Hosted
 
-`s2ar.dev/sym` runs the same verbs over any public git URL for agents that
+`api.s2ar.dev` runs the same verbs over any public git URL for agents that
 cannot install a binary, paid per call (credits, x402, or Stripe's Machine
-Payments Protocol). See the site for the 402 flow.
+Payments Protocol). It is also an MCP server over HTTP:
+
+```
+claude mcp add --transport http sym-hosted https://api.s2ar.dev/mcp \
+  --header "Authorization: Bearer <key>"
+```
+
+Tools: `sym_map_repo`, `sym_ls_repo`, `sym_read_repo`, and `buy_credits`, which
+returns the payment link an agent with a Link wallet can pay (Stripe's
+"monetize your MCP server" pattern). See the site for the 402 flow.
 
 ## Measurement
 

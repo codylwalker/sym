@@ -5,7 +5,7 @@
 - **Plugin repo:** https://github.com/codylwalker/sym (marketplace at `.claude-plugin/marketplace.json`, plugin at `plugin/`)
 - **Name:** sym
 - **Tagline:** Read the function, not the file.
-- **Description:** Symbol-level code reads for coding agents. `sym ls` gives a file's skeleton with line ranges, `sym read` one symbol with its docs, `sym map` a budgeted map of a directory ranked by import fan-in. Whole files stay out of context, so prompt caching stays intact. Ships a skill, an MCP server (`sym_ls`, `sym_read`, `sym_map`) and a Read hook (`SYM_HOOK_MODE=deny` refuses whole-file Reads of big source files). Rust, Lua, Python, TypeScript/TSX, JavaScript, Go. Needs the `sym` binary: `cargo install sym-cli`.
+- **Description:** Symbol-level code reads for coding agents. `sym ls` gives a file's skeleton with line ranges, `sym read` one symbol with its docs, `sym map` a budgeted map of a directory ranked by import fan-in. Whole files stay out of context, so prompt caching stays intact. Ships a skill, an MCP server (`sym_ls`, `sym_read`, `sym_map`) and a Read hook (`SYM_HOOK_MODE=deny` refuses whole-file Reads of big source files). Rust, Lua, Python, TypeScript/TSX, JavaScript, Go, C, C++, Java, Ruby. Needs the `sym` binary: `cargo install sym-cli`.
 - **Category:** productivity / developer tools
 - **Homepage:** https://s2ar.dev/sym/ · **Docs:** https://s2ar.dev/sym/#docs · **Support:** https://github.com/codylwalker/sym/issues
 - **Privacy:** https://s2ar.dev/sym/privacy.html · **Terms:** https://s2ar.dev/sym/terms.html
@@ -20,6 +20,7 @@ Stripe account id: <acct_… from the dashboard>
 Stripe profile id: <profile_… from Settings → Profiles>
 llms.txt: https://s2ar.dev/sym/llms.txt
 Agent skill: the Claude Code plugin at https://github.com/codylwalker/sym (skill `sym`)
+MCP server (Streamable HTTP): https://api.s2ar.dev/mcp — tools sym_map_repo, sym_ls_repo, sym_read_repo, buy_credits (the tool returns the MPP payment link)
 
 Example prompts:
 1. "Map https://github.com/BurntSushi/ripgrep at 14.1.1 through api.s2ar.dev with a 1200-token budget and tell me which file has the most importers."

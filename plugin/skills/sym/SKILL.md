@@ -1,6 +1,6 @@
 ---
 name: sym
-description: Read source code at the symbol level instead of whole files. Use before reading any source file over ~200 lines (Rust, Lua, Python, TypeScript, JavaScript, Go), when orienting in an unfamiliar directory, or when a task names a function, type or class.
+description: Read source code at the symbol level instead of whole files. Use before reading any source file over ~200 lines (Rust, Lua, Python, TypeScript, JavaScript, Go, C, C++, Java, Ruby), when orienting in an unfamiliar directory, or when a task names a function, type or class.
 ---
 
 # sym: read the function, not the file
@@ -15,7 +15,7 @@ is replayed on every turn. `sym` keeps the file out of context in the first plac
 |---|---|---|
 | `sym ls <file>` | before any Read of a source file > ~200 lines | every symbol with its line range and one-line signature |
 | `sym read <file> <symbol>` | you need one function, type or class | that symbol's source, line-numbered, with its doc block |
-| `sym map <dir> --budget N` | orienting in an unfamiliar directory | per-file top-level signatures, files ranked by import fan-in, cut at N tokens |
+| `sym map <dir> --budget N` | orienting in an unfamiliar directory | per-file top-level signatures, files ranked by PageRank over the import graph, cut at N tokens |
 
 Add `--json` for structured output, `--est` for a token estimate line.
 

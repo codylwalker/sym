@@ -1,6 +1,6 @@
 # sym
 
-> Read the function, not the file. Symbol-level code reads for AI coding agents: a file's skeleton, one symbol's source with its docs, or a budgeted map of a directory, parsed with tree-sitter. Keeps whole files out of context so prompt caching stays intact. Languages: Rust, Lua, Python, TypeScript/TSX, JavaScript, Go.
+> Read the function, not the file. Symbol-level code reads for AI coding agents: a file's skeleton, one symbol's source with its docs, or a budgeted map of a directory, parsed with tree-sitter. Keeps whole files out of context so prompt caching stays intact. Languages: Rust, Lua, Python, TypeScript/TSX, JavaScript, Go, C, C++, Java, Ruby.
 
 Operated by Stardata (Cody Lee Walker, Canada). Contact: cody@stardata.foundation.
 
@@ -12,6 +12,8 @@ Operated by Stardata (Cody Lee Walker, Canada). Contact: cody@stardata.foundatio
 - Claude Code plugin: `claude plugin marketplace add https://github.com/codylwalker/sym` then `claude plugin install sym@sym`.
 
 ## Hosted (paid per call)
+
+- MCP over HTTP: `claude mcp add --transport http sym-hosted https://api.s2ar.dev/mcp --header "Authorization: Bearer <key>"`. Tools `sym_map_repo`, `sym_ls_repo`, `sym_read_repo`, `buy_credits` (returns the payment link; pay it with the Link agent wallet, then send the key as the Bearer header).
 
 - `POST https://api.s2ar.dev/v1/sym/map` body `{"repo": "<public git url>", "ref": "<tag|branch>", "budget": 1000}` → `{ok, text, data, tokens_est, charged_usd}`. $0.01 per call.
 - `POST https://api.s2ar.dev/v1/sym/read` body `{"repo", "ref", "file", "symbol"}`. $0.005 per call.
