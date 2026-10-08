@@ -286,13 +286,14 @@ mod tests {
         let r = build(dir.path(), out.path(), Some((&url, "fake")), 8).unwrap();
         assert_eq!((r.chunks, r.embedded, r.reused), (2, 2, 0));
         // A second build with one new symbol embeds only that one.
-        std::fs::write(dir.path().join("b.rs"), "pub fn glob_match() {}\n#[cfg(test)]\nmod tests { fn glob_pattern_parsing() {} }\n").unwrap();
+        std::fs::write(dir.path().join("b.rs"), "fn glob_match() {}\n#[cfg(test)]\nmod tests { fn glob_match() {} }\n").unwrap();
         let r = build(dir.path(), out.path(), Some((&url, "fake")), 8).unwrap();
         assert_eq!((r.chunks, r.embedded, r.reused), (5, 3, 2));
-        let w = find_where(out.path(), "glob pattern parsing", 3, None, true).unwrap();
+        let w = find_where(out.path(), "glob match", 3, None, true).unwrap();
         let paths: Vec<&str> = w.hits.iter().map(|h| h.chunk.path.as_str()).collect();
-        assert!(paths[0].contains("glob"), "{paths:?}");
-        assert_ne!(paths[0], "tests::glob_pattern_parsing", "test code is demoted: {paths:?}");
+        // Same text, same name hits: only the test-code demotion separates them.
+        assert_eq!(paths[0], "glob_match", "test code is demoted: {paths:?}");
+        assert_eq!(paths[1], "tests::glob_match", "{paths:?}");
         let text = where_text(&w);
         assert!(text.contains("a.py:1-2") || text.contains("b.rs:1-1"), "{text}");
         let _ = crate::embed::embed(&url, "fake", &["STOP".to_string()]);
