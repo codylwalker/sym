@@ -321,8 +321,11 @@ def main() -> int:
         json.dump(out, f, indent=1)
     with open(os.path.join(RESULTS, stamp + ".md"), "w", encoding="utf-8") as f:
         f.write(table(rows, summary))
-    with open(os.path.join(RESULTS, "latest.json"), "w", encoding="utf-8") as f:
-        json.dump(out, f, indent=1)
+    if args.only:
+        print("partial run (--only): latest.json left alone")
+    else:
+        with open(os.path.join(RESULTS, "latest.json"), "w", encoding="utf-8") as f:
+            json.dump(out, f, indent=1)
     print(table(rows, summary))
     return 0
 
