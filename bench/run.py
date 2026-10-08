@@ -210,29 +210,39 @@ def summarize(rows: list[dict]) -> dict:
             "sym_calls": sum(r["tools"]["sym_bash"] + r["tools"]["sym_mcp"] for r in rs),
             "skeletons": sum(r["tools"].get("skeleton", 0) for r in rs),
         }
-    other = "plugin" if "plugin" in summary else ("mod" if "mod" in summary else None)
-    if "plain" in summary and other:
+    # Per arm against plain: per task, the median cost of each arm, then the
+    # median of those paired deltas. Pooling tasks of different sizes would let
+    # the expensive tasks move the number on their own.
+    per_task: dict = {}
+    for r in rows:
+        if r.get("cost_usd") is None:
+            continue
+        per_task.setdefault(r["task"], {}).setdefault(r["arm"], []).append(r["cost_usd"])
+    summary["arms"] = {}
+    for other in ("mod", "plugin"):
+        if "plain" not in summary or other not in summary:
+            continue
         a, b = summary["plain"]["cost_median"], summary[other]["cost_median"]
-        summary["delta_median_cost_pct"] = round((b - a) / a * 100.0, 1) if a else None
-        # The headline: per task, the median cost of each arm, then the median of
-        # those paired deltas. Pooling tasks of different sizes would let the
-        # expensive tasks move the number on their own.
-        per_task: dict = {}
-        for r in rows:
-            if r.get("cost_usd") is None:
-                continue
-            per_task.setdefault(r["task"], {}).setdefault(r["arm"], []).append(r["cost_usd"])
-        deltas = []
-        for t, arms in per_task.items():
+        deltas: dict = {}
+        for t, arms in sorted(per_task.items()):
             if "plain" in arms and other in arms:
                 pa, pb = statistics.median(arms["plain"]), statistics.median(arms[other])
                 if pa:
-                    deltas.append(round((pb - pa) / pa * 100.0, 1))
-        summary["paired_task_deltas_pct"] = dict(zip(sorted(per_task), deltas)) if len(deltas) == len(per_task) else deltas
-        summary["headline_pct"] = round(statistics.median(deltas), 1) if deltas else None
-        summary["other_arm"] = other
-        summary["tasks_cheaper"] = sum(1 for d in deltas if d < 0)
-        summary["tasks_total"] = len(deltas)
+                    deltas[t] = round((pb - pa) / pa * 100.0, 1)
+        summary["arms"][other] = {
+            "delta_median_cost_pct": round((b - a) / a * 100.0, 1) if a else None,
+            "paired_task_deltas_pct": deltas,
+            "headline_pct": round(statistics.median(deltas.values()), 1) if deltas else None,
+            "tasks_cheaper": sum(1 for d in deltas.values() if d < 0),
+            "tasks_total": len(deltas),
+        }
+    # The headline is the mod's when it ran (the install on Claude Code
+    # 2.1.287+), else the classic plugin's; the other arm is in `arms`.
+    head = summary["arms"].get("mod") or summary["arms"].get("plugin")
+    if head:
+        summary["other_arm"] = "mod" if "mod" in summary["arms"] else "plugin"
+        for k in ("delta_median_cost_pct", "paired_task_deltas_pct", "headline_pct", "tasks_cheaper", "tasks_total"):
+            summary[k] = head[k]
     return summary
 
 
@@ -251,11 +261,13 @@ def table(rows: list[dict], summary: dict) -> str:
         if s:
             lines.append("**%s**: n=%d · median cost %.4f · mean %.4f · median cache read %s · median turns %s · Reads %d · sym calls %d · skeleton answers %d" % (
                 arm, s["n"], s["cost_median"], s["cost_mean"], s["cache_read_median"], s["turns_median"], s["reads"], s["sym_calls"], s.get("skeletons", 0)))
-    d = summary.get("headline_pct")
-    if d is not None:
+    for arm, a in (summary.get("arms") or {}).items():
+        if a.get("headline_pct") is None:
+            continue
         lines.append("")
         lines.append("**Median of per-task paired cost deltas, %s vs plain: %+.1f%%; cheaper on %d of %d tasks** (negative = cheaper). Pooled median delta %+.1f%%. Cache reads are billed; losses are in the table." % (
-            summary.get("other_arm", "plugin"), d, summary.get("tasks_cheaper", 0), summary.get("tasks_total", 0), summary.get("delta_median_cost_pct") or 0.0))
+            arm, a["headline_pct"], a["tasks_cheaper"], a["tasks_total"], a.get("delta_median_cost_pct") or 0.0))
+        lines.append("per task: " + ", ".join("%s %+.0f%%" % (t, d) for t, d in sorted(a["paired_task_deltas_pct"].items(), key=lambda x: x[1])))
     return "\n".join(lines) + "\n"
 
 
@@ -266,7 +278,19 @@ def main() -> int:
     ap.add_argument("--dry", action="store_true")
     ap.add_argument("--only", help="comma-separated task ids")
     ap.add_argument("--arms", default="plain,plugin", help="comma-separated arms: plain, plugin, mod")
+    ap.add_argument("--recount", help="recompute the summary and table of an existing results JSON (no sessions run)")
     args = ap.parse_args()
+    if args.recount:
+        j = json.load(open(args.recount, encoding="utf-8"))
+        j["summary"] = summarize(j["rows"])
+        with open(args.recount, "w", encoding="utf-8") as f:
+            json.dump(j, f, indent=1)
+        with open(os.path.join(RESULTS, j["stamp"] + ".md"), "w", encoding="utf-8") as f:
+            f.write(table(j["rows"], j["summary"]))
+        with open(os.path.join(RESULTS, "latest.json"), "w", encoding="utf-8") as f:
+            json.dump(j, f, indent=1)
+        print(table(j["rows"], j["summary"]).split("\n\n", 1)[-1])
+        return 0
     repo, tasks = read_tasks(os.path.join(HERE, "tasks.toml"))
     if args.only:
         keep = set(args.only.split(","))
@@ -279,7 +303,7 @@ def main() -> int:
         return 0
     cwd = ensure_checkout(repo["url"], repo["ref"])
     rows: list[dict] = []
-    stamp = dt.datetime.utcnow().strftime("%Y-%m-%dT%H%MZ")
+    stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H%MZ")
     os.makedirs(RESULTS, exist_ok=True)
     for i in range(args.runs):
         for t in tasks:

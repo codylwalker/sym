@@ -39,10 +39,16 @@ def bench_bits() -> tuple[str, str]:
             continue
         rows.append("<tr><td class=\"mono\">%s</td><td>%s</td><td class=\"mono\">%.4f</td><td class=\"mono\">%s</td><td class=\"mono\">%s</td><td class=\"mono\">%s</td></tr>" % (
             html.escape(r["task"]), r["arm"], r["cost_usd"], r.get("input"), r.get("cache_read"), r.get("turns")))
+    arms = s.get("arms") or {}
+    per_arm = " ".join("<b>%s</b> vs plain: %+.1f%% (median of per-task paired deltas; cheaper on %s of %s tasks; pooled %+.1f%%)." % (
+        html.escape(arm), a.get("headline_pct") or 0.0, a.get("tasks_cheaper", "?"), a.get("tasks_total", "?"), a.get("delta_median_cost_pct") or 0.0)
+        for arm, a in arms.items() if a.get("headline_pct") is not None) or (
+        "Headline = median of per-task paired deltas (cheaper on %s of %s tasks); pooled median delta %s%%." % (
+            s.get("tasks_cheaper", "?"), s.get("tasks_total", "?"), s.get("delta_median_cost_pct", "?")))
     table = ("<table><tr><th>task</th><th>arm</th><th>cost USD</th><th>input</th><th>cache read</th><th>turns</th></tr>%s</table>"
-             "<p class=\"note\">%s on %s@%s, %d runs per cell, model %s. Headline = median of per-task paired deltas (cheaper on %s of %s tasks); pooled median delta %s%%. Full file: <code>bench/results/%s.json</code>.</p>") % (
+             "<p class=\"note\">%s on %s@%s, %d runs per cell, model %s, Claude Code %s. %s The headline above is the mod arm (the install on Claude Code 2.1.287+). Full file: <code>bench/results/%s.json</code>.</p>") % (
         "".join(rows), html.escape(j["stamp"]), html.escape(j["repo"]["url"]), html.escape(j["repo"]["ref"]),
-        j.get("runs", 0), html.escape(j.get("model", "")), s.get("tasks_cheaper", "?"), s.get("tasks_total", "?"), s.get("delta_median_cost_pct", "?"), html.escape(j["stamp"]))
+        j.get("runs", 0), html.escape(j.get("model", "")), html.escape(j.get("claude_code", "2.1.294")), per_arm, html.escape(j["stamp"]))
     _ = md
     return cost, table
 
