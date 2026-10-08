@@ -1,0 +1,37 @@
+[package]
+name = "sym-cli"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.80"
+description = "Read the function, not the file: symbol-level code reads for AI coding agents (tree-sitter; CLI, MCP, HTTP)"
+homepage = "https://sym.s2ar.dev"
+license-file = "LICENSE.md"
+readme = "README.md"
+keywords = ["tree-sitter", "tokens", "mcp", "agents", "code-reading"]
+categories = ["command-line-utilities", "development-tools"]
+exclude = ["bench/", "site/", "deploy/", "plugin/", "tools/", ".claude-plugin/"]
+
+[lib]
+name = "sym"
+path = "src/lib.rs"
+
+[[bin]]
+name = "sym"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive", "env"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+walkdir = "2"
+tiny_http = { version = "0.12", default-features = false }
+tree-sitter = "0.26"
+tree-sitter-rust = "0.24"
+tree-sitter-python = "0.25"
+tree-sitter-lua = "0.5"
+tree-sitter-typescript = "0.23"
+tree-sitter-javascript = "0.25"
+tree-sitter-go = "0.25"
+
+[dev-dependencies]
+tempfile = "3"
