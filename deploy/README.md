@@ -16,10 +16,10 @@ Three processes, all loopback except the public Caddy vhost:
    `TEMPO_DEPOSIT_ADDRESS`. Sandbox first (`sk_test_`, `profile_test_`).
 
 Caddy: `starlens/deploy/sites/sym.caddyfile` → `/etc/caddy/sites/`, then
-`systemctl reload caddy`. DNS: `sym.s2ar.dev` A record to the box. Site files:
+`systemctl reload caddy`. DNS: `s2ar.dev/sym` A record to the box. Site files:
 `tools/deploy_site.py` scp's `site/` to `/srv/stardata/site/sym/`.
 
-Checks: `curl -s https://sym.s2ar.dev/healthz`; `curl -s -X POST
-https://sym.s2ar.dev/v1/sym/map -H 'content-type: application/json' -d
+Checks: `curl -s https://s2ar.dev/sym/healthz`; `curl -s -X POST
+https://api.s2ar.dev/v1/sym/map -H 'content-type: application/json' -d
 '{"repo":"https://github.com/BurntSushi/ripgrep","ref":"14.1.1"}'` → 402 with
-every configured rail; `npx mppx@latest validate https://sym.s2ar.dev/v1/sym/map`.
+every configured rail; `npx mppx@latest validate https://api.s2ar.dev/v1/sym/map`.

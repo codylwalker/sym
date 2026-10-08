@@ -66,7 +66,7 @@ pointing at the skeleton. It never blocks.
 
 ## Hosted
 
-`sym.s2ar.dev` runs the same verbs over any public git URL for agents that
+`s2ar.dev/sym` runs the same verbs over any public git URL for agents that
 cannot install a binary, paid per call (credits, x402, or Stripe's Machine
 Payments Protocol). See the site for the 402 flow.
 

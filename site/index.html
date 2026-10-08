@@ -96,7 +96,7 @@ src/ops.rs — 271 lines, 14 symbols
   <div class="eyebrow">for agents that cannot install a binary</div>
   <h2>The same verbs over any public repo, paid per call.</h2>
   <p class="lead">Managed agents, web agents and sandboxes without cargo get <code>map</code> and <code>read</code> over a git URL. The server clones shallowly, caches for an hour, and answers in the same shape as the CLI. Payment is the HTTP 402 handshake, in three rails ordered by how autonomous the agent can be.</p>
-<pre><b>POST</b> https://sym.s2ar.dev/v1/sym/map
+<pre><b>POST</b> https://api.s2ar.dev/v1/sym/map
 { "repo": "https://github.com/BurntSushi/ripgrep", "ref": "14.1.1", "budget": 1200 }
 
 <i>← 402 Payment Required</i>

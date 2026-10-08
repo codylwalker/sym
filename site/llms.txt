@@ -13,8 +13,8 @@ Operated by Stardata (Cody Lee Walker, Canada). Contact: cody@stardata.foundatio
 
 ## Hosted (paid per call)
 
-- `POST https://sym.s2ar.dev/v1/sym/map` body `{"repo": "<public git url>", "ref": "<tag|branch>", "budget": 1000}` → `{ok, text, data, tokens_est, charged_usd}`. $0.01 per call.
-- `POST https://sym.s2ar.dev/v1/sym/read` body `{"repo", "ref", "file", "symbol"}`. $0.005 per call.
+- `POST https://api.s2ar.dev/v1/sym/map` body `{"repo": "<public git url>", "ref": "<tag|branch>", "budget": 1000}` → `{ok, text, data, tokens_est, charged_usd}`. $0.01 per call.
+- `POST https://api.s2ar.dev/v1/sym/read` body `{"repo", "ref", "file", "symbol"}`. $0.005 per call.
 - Unpaid requests get HTTP 402 carrying every rail: `WWW-Authenticate: Payment` (Stripe Machine Payments Protocol: cards via Shared Payment Tokens, USDC via Tempo), an x402 body (USDC on Base, header `X-PAYMENT`), and a `checkout_url` for a human to buy a credit pack (then `Authorization: Bearer <key>`).
 - Agent skill for card payments: `npx skills add stripe/link-cli`. Test mode is supported.
 - Failed requests are never charged. Only public repositories are read; checkouts are cached for one hour and never logged.
@@ -23,11 +23,11 @@ Operated by Stardata (Cody Lee Walker, Canada). Contact: cody@stardata.foundatio
 
 - "Use sym_map on this repo with a 1200-token budget, then sym_read the function that parses the --glob flag."
 - "Before reading src/searcher.rs, run sym ls on it and pick the symbol."
-- "Map https://github.com/BurntSushi/ripgrep at 14.1.1 through sym.s2ar.dev and tell me which file has the most importers."
+- "Map https://github.com/BurntSushi/ripgrep at 14.1.1 through api.s2ar.dev and tell me which file has the most importers."
 
 ## Links
 
-- Site: https://sym.s2ar.dev
+- Site: https://s2ar.dev/sym/
 - Source: https://github.com/codylwalker/sym
-- Privacy: https://sym.s2ar.dev/privacy.html · Terms: https://sym.s2ar.dev/terms.html
+- Privacy: https://s2ar.dev/sym/privacy.html · Terms: https://s2ar.dev/sym/terms.html
 - Bench method: https://github.com/codylwalker/sym/tree/main/bench
