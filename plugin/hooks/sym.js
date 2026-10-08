@@ -101,7 +101,7 @@ export function register(on, options) {
     await $.tool.register({
       name: 'read',
       isDeferred: false,
-      description: 'One symbol\'s source, line-numbered, with its doc block. `symbol` is the leaf name or the qualified path from ls (Widget::new, Runner.helper, Server.Serve).',
+      description: 'One symbol\'s source, line-numbered, with its doc block. `symbol` is the leaf name or the qualified path from ls (Widget::new, Runner.helper, Server.Serve); `impl Trait for Type`, `Type as Trait`, `Type::method` and short trait paths are accepted too. For "where is X defined", one read of X answers it; prefer Grep when you need mentions, not the definition.',
       inputSchema: { type: 'object', properties: { file: { type: 'string' }, symbol: { type: 'string' } }, required: ['file', 'symbol'] },
     })
     await $.tool.register({

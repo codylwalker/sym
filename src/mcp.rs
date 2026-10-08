@@ -106,7 +106,7 @@ pub fn tool_defs() -> Value {
         },
         {
             "name": "sym_read",
-            "description": "One symbol's source, line-numbered, with the doc comment or attributes directly above it. `symbol` is the leaf name or the qualified path from sym_ls (Widget::new, Runner.helper, Server.Serve).",
+            "description": "One symbol's source, line-numbered, with the doc comment or attributes directly above it. `symbol` is the leaf name or the qualified path from sym_ls (Widget::new, Runner.helper, Server.Serve); `impl Trait for Type`, `Type as Trait`, `Type::method` and short trait paths are accepted too. One call answers \"where is X defined and what does it do\".",
             "inputSchema": obj_schema(json!({
                 "file": { "type": "string" },
                 "symbol": { "type": "string" },

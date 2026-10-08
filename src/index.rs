@@ -275,7 +275,6 @@ pub fn where_text(o: &WhereOut) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::Read as _;
 
     /// A fake embedder: the vector of a text is its letter histogram, so
     /// texts that share words land close. Enough to test the plumbing.

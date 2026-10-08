@@ -67,20 +67,74 @@ pub fn ls(file: &Path) -> Result<LsOut, String> {
     })
 }
 
+/// The spellings a qualified path answers to, with trait paths cut short:
+/// `X as std::str::FromStr::from_str` yields `X as from_str` and
+/// `X as FromStr::from_str`; `impl Trait for Type` / `impl Type` (what `ls`
+/// prints as the signature) fold to the path `ls` prints first.
+fn canon_set(q: &str) -> Vec<String> {
+    let q = q.trim();
+    let q = q.strip_prefix("impl ").map(|r| {
+        let r = r.trim_end_matches('{').trim();
+        match r.split_once(" for ") {
+            Some((tr, ty)) => format!("{} as {}", ty.trim(), tr.trim()),
+            None => r.to_string(),
+        }
+    }).unwrap_or_else(|| q.to_string());
+    match q.split_once(" as ") {
+        Some((ty, rest)) => {
+            let segs: Vec<&str> = rest.split("::").collect();
+            let mut out = vec![format!("{ty} as {}", segs[segs.len() - 1])];
+            if segs.len() >= 2 {
+                out.push(format!("{ty} as {}::{}", segs[segs.len() - 2], segs[segs.len() - 1]));
+            }
+            out
+        }
+        None => vec![q],
+    }
+}
+
 pub fn read(file: &Path, symbol: &str) -> Result<ReadOut, String> {
     let (src, lang) = load(file)?;
     let symbols = extract_symbols(&src, lang)?;
-    let matches: Vec<&Symbol> = symbols
+    let mut matches: Vec<&Symbol> = symbols
         .iter()
         .filter(|s| s.name == symbol || s.path == symbol)
         .collect();
+    if matches.is_empty() {
+        // Tolerant forms: the signature as `ls` prints it, `impl T for X`,
+        // trait paths cut to their last segment, `Type::method` for a method
+        // under any impl of Type.
+        let want = canon_set(symbol);
+        matches = symbols
+            .iter()
+            .filter(|s| s.signature.trim_end_matches('{').trim() == symbol.trim() || canon_set(&s.path).iter().any(|c| want.contains(c)))
+            .collect();
+        if matches.is_empty() {
+            if let Some((ty, m)) = symbol.rsplit_once("::") {
+                matches = symbols
+                    .iter()
+                    .filter(|s| s.name == m && (s.path.starts_with(&format!("{ty} as ")) || s.path.starts_with(&format!("{ty}::"))))
+                    .collect();
+            }
+        }
+    }
     let sym = match matches.len() {
         0 => {
-            let names: Vec<&str> = symbols.iter().map(|s| s.path.as_str()).collect();
+            // A short, relevant list: the symbols sharing a token with the
+            // query, then top-level names, never the whole file.
+            let toks: Vec<String> = symbol.split(|c: char| !c.is_alphanumeric() && c != '_').filter(|t| t.len() > 2).map(|t| t.to_lowercase()).collect();
+            let mut near: Vec<&str> = symbols.iter().filter(|s| { let p = s.path.to_lowercase(); toks.iter().any(|t| p.contains(t.as_str())) }).map(|s| s.path.as_str()).collect();
+            if near.is_empty() {
+                near = symbols.iter().filter(|s| s.depth == 0).map(|s| s.path.as_str()).collect();
+            }
+            near.dedup();
+            let total = near.len();
+            near.truncate(12);
+            let more = if total > 12 { format!(" (+{} more; `sym ls` lists every symbol)", total - 12) } else { String::new() };
             return Err(format!(
-                "symbol {symbol:?} not found in {}. Available: {}",
+                "symbol {symbol:?} not found in {}. Near: {}{more}",
                 display(file),
-                names.join(", ")
+                near.join(", ")
             ));
         }
         1 => matches[0],
@@ -330,7 +384,27 @@ mod tests {
         let out = read(&f, "X::a").unwrap();
         assert_eq!(out.start_line, 5);
         let err = read(&f, "zz").unwrap_err();
-        assert!(err.contains("Available: a, X, X::a"), "{err}");
+        assert!(err.contains("Near: a, X"), "{err}");
+    }
+
+    #[test]
+    fn read_accepts_impl_spellings_and_short_trait_paths_and_keeps_errors_short() {
+        let dir = tempfile::tempdir().unwrap();
+        let f = dir.path().join("t.rs");
+        let mut src = String::from("struct Sort;\nimpl Flag for Sort { fn update(&self) {} fn name(&self) {} }\nimpl std::str::FromStr for Sort { type Err = (); fn from_str(s: &str) -> Result<Self, ()> { Ok(Sort) } }\nimpl Sort { fn new() -> Sort { Sort } }\n");
+        for i in 0..40 { src.push_str(&format!("fn filler_{i}() {{}}\n")); }
+        std::fs::write(&f, src).unwrap();
+        assert_eq!(read(&f, "impl Flag for Sort").unwrap().symbol, "Sort as Flag");
+        assert_eq!(read(&f, "Sort as Flag").unwrap().symbol, "Sort as Flag");
+        assert_eq!(read(&f, "Sort as FromStr::from_str").unwrap().symbol, "Sort as std::str::FromStr::from_str");
+        assert_eq!(read(&f, "impl FromStr for Sort").unwrap().symbol, "Sort as std::str::FromStr");
+        assert_eq!(read(&f, "Sort::update").unwrap().symbol, "Sort as Flag::update");
+        assert_eq!(read(&f, "Sort::new").unwrap().symbol, "Sort::new");
+        let err = read(&f, "impl Flag for Nope").unwrap_err();
+        assert!(err.contains("Near:") && err.contains("Sort as Flag") && !err.contains("filler_13"), "{err}");
+        assert!(err.len() < 600, "{}", err.len());
+        let err = read(&f, "zzz_nothing").unwrap_err();
+        assert!(err.contains("+") && err.contains("more"), "{err}");
     }
 
     #[test]
