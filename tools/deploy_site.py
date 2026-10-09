@@ -45,10 +45,22 @@ def bench_bits() -> tuple[str, str]:
         for arm, a in arms.items() if a.get("headline_pct") is not None) or (
         "Headline = median of per-task paired deltas (cheaper on %s of %s tasks); pooled median delta %s%%." % (
             s.get("tasks_cheaper", "?"), s.get("tasks_total", "?"), s.get("delta_median_cost_pct", "?")))
+    # The certificate: did the cheaper arms answer the same? (bench/certify.py)
+    cert = ""
+    cpath = os.path.join(ROOT, "bench", "results", "latest-certify.json")
+    if os.path.exists(cpath):
+        c = json.load(open(cpath, encoding="utf-8"))
+        if c.get("stamp") == j.get("stamp"):
+            parts = []
+            for arm, v in (c.get("summary") or {}).items():
+                parts.append("<b>%s</b> agreed with plain on %d of %d tasks (partial %d, disagree %d)" % (
+                    html.escape(arm), v.get("agree", 0), v.get("tasks", 0), v.get("partial", 0), v.get("disagree", 0)))
+            if parts:
+                cert = " Answers, judged by %s against the plain arm's: %s." % (html.escape(c.get("judge_model", "haiku")), "; ".join(parts))
     table = ("<table><tr><th>task</th><th>arm</th><th>cost USD</th><th>input</th><th>cache read</th><th>turns</th></tr>%s</table>"
-             "<p class=\"note\">%s on %s@%s, %d runs per cell, model %s, Claude Code %s. %s The headline above is the mod arm (the install on Claude Code 2.1.287+). Full file: <code>bench/results/%s.json</code>.</p>") % (
+             "<p class=\"note\">%s on %s@%s, %d runs per cell, model %s, Claude Code %s. %s The headline above is the mod arm (the install on Claude Code 2.1.287+).%s Full file: <code>bench/results/%s.json</code>.</p>") % (
         "".join(rows), html.escape(j["stamp"]), html.escape(j["repo"]["url"]), html.escape(j["repo"]["ref"]),
-        j.get("runs", 0), html.escape(j.get("model", "")), html.escape(j.get("claude_code", "2.1.294")), per_arm, html.escape(j["stamp"]))
+        j.get("runs", 0), html.escape(j.get("model", "")), html.escape(j.get("claude_code", "2.1.294")), per_arm, cert, html.escape(j["stamp"]))
     _ = md
     return cost, table
 

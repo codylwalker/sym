@@ -125,6 +125,12 @@ def run_one(task: dict, arm: str, cwd: str, model: str) -> dict:
     t0 = time.time()
     r = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=900, env=env)
     wall = time.time() - t0
+    # An account at its limit answers every prompt with the same line and a
+    # zero cost; a run that recorded those would publish a lie.
+    lowered = (r.stdout + r.stderr).lower()
+    if "weekly limit" in lowered or "rate limit" in lowered or "usage limit" in lowered:
+        raise SystemExit("bench: the account is at its usage limit (%s); nothing recorded" % (
+            [l for l in (r.stdout + r.stderr).splitlines() if "limit" in l.lower()] or ["?"])[0][:160])
     out: dict = {"task": task["id"], "arm": arm, "wall_s": round(wall, 1), "rc": r.returncode}
     try:
         j = json.loads(r.stdout)
@@ -140,7 +146,7 @@ def run_one(task: dict, arm: str, cwd: str, model: str) -> dict:
         "cache_create": usage.get("cache_creation_input_tokens"),
         "cache_read": usage.get("cache_read_input_tokens"),
         "session_id": j.get("session_id"),
-        "answer": (j.get("result") or "")[:600],
+        "answer": (j.get("result") or "")[:2000],
     })
     out["tools"] = tool_mix(j.get("session_id"))
     return out
