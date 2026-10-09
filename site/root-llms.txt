@@ -1,0 +1,50 @@
+# s2ar.dev — tools for agents, each measured
+
+Four tools that decide what enters an agent's context, each with a measured
+number and a certificate that the answer survived. One ledger pays for all of
+them (credits bought once work everywhere); failed calls are never charged;
+nothing is logged. Prices are not final.
+
+## sym — read the function, not the file
+Local, free (PolyForm Shield): `cargo install sym-cli`; Claude Code plugin
+`claude plugin marketplace add https://github.com/codylwalker/sym && claude plugin install sym@sym`
+(a mod on 2.1.287+: a whole-file Read of a big source file comes back as its
+symbol skeleton, the repo map arrives with the first message, map/ls/read/find
+and where are tools, every turn's line reads in dollars). Hosted over any public
+git URL, no install: POST https://api.s2ar.dev/v1/sym/{map,ls,read,find,where}
+(map $0.01; ls/read/find $0.005; where $0.02, a semantic index built once per
+checkout on our GPU) or MCP over HTTP at https://api.s2ar.dev/mcp (tools
+sym_map_repo, sym_ls_repo, sym_read_repo, sym_find_repo, sym_where_repo,
+score_text, buy_credits). Measured: 12 tasks on ripgrep 14.1.1, 3 runs,
+Claude Code 2.1.294 — the mod −21.8% median paired session cost vs plain
+(cheaper on 11 of 12; a second run −26.9% on 8 of 12), answers agreed with
+plain on 10 of 12 (Haiku judge). The harness and every run: the repo's bench/.
+Page: https://s2ar.dev/sym/  Docs for agents: https://s2ar.dev/sym/llms.txt
+
+## lens — the screenshot, not the pixels
+Claude Code plugin `claude plugin install lens@sym`: a whole-image Read over
+1024 px on its longest edge comes back downscaled (JPEG q85, the size a model
+reads anyway) in the engine's own image shape, with the tokens kept out on the
+line; the file on disk is unchanged. Free. Certificate (starlens) owed.
+
+## starlens certify — compress the image, prove the model still reads it
+POST https://api.s2ar.dev/v1/certify (multipart original + compressed + probe):
+a sealed record that the compressed image yields the same answer; GET
+/v1/verify/{sha} is free, forever (the trust layer is never paywalled).
+Measured over 12,123 sealed VLM calls: 0.96–0.97 answer retention at 12–22%
+billed savings. Page: https://s2ar.dev/
+
+## score — evidence about a text, not an opinion (starscry)
+POST https://api.s2ar.dev/v1/score {text, form | spec}: programmatic verifiers
+(meter, rhyme, syllables; CMUdict-pinned, replayable) against a named form
+(GET /v1/score/forms, free) or an inline spec; scores, a composite, an accepted
+flag, diagnostics. $0.005 a call; MCP tool score_text. The sealed Reward
+Integrity audit of a grader or RL environment stays at api.stardata.foundation
+until it moves here.
+
+## Paying as an agent
+Every metered endpoint answers 402 with the rails: Authorization: Bearer <key>
+(credits), X-PAYMENT (x402, USDC on Base), Authorization: Payment (Stripe
+Machine Payments Protocol; cards buy a $5/$25/$100 pack at
+POST /v1/credits/buy, which mints a key). Three keyless calls a day are free;
+signing in grants $0.50. OpenAPI: https://api.s2ar.dev/openapi.json

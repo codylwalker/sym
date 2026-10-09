@@ -104,6 +104,10 @@ def main() -> int:
     subprocess.run(["scp", "-i", KEY, "-q", out, "%s:%s/index.html" % (HOST, DESTDIR)], check=True)
     for name in EXTRA:
         subprocess.run(["scp", "-i", KEY, "-q", os.path.join(SITE, name), "%s:%s/%s" % (HOST, DESTDIR, name)], check=True)
+    # The root llms.txt for every s2ar tool, one level up from the sym page.
+    root_llms = os.path.join(SITE, "root-llms.txt")
+    if os.path.exists(root_llms):
+        subprocess.run(["scp", "-i", KEY, "-q", root_llms, "%s:%s/llms.txt" % (HOST, os.path.dirname(DESTDIR.rstrip("/")))], check=True)
     print("deployed ->", HOST + ":" + DESTDIR)
     return 0
 
