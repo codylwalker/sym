@@ -25,6 +25,10 @@ Operated by s2ar (Cody Lee Walker, Canada). Contact: cody@s2ar.dev.
 - Agent skill for card payments: `npx skills add stripe/link-cli`. Test mode is supported.
 - Failed requests are never charged. Only public repositories are read; checkouts are cached for one hour and never logged.
 
+## Worked examples
+
+Real calls with their receipts, every number re-derived: https://s2ar.dev/examples/ (start with https://s2ar.dev/examples/read-the-function.html). Live demos that call the API from a browser: https://s2ar.dev/examples/score.html, /verify.html, /map.html, /certify.html.
+
 ## Example prompts
 
 - "Use sym_map on this repo with a 1200-token budget, then sym_read the function that parses the --glob flag."

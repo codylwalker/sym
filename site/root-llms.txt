@@ -42,6 +42,12 @@ flag, diagnostics. $0.005 a call; MCP tool score_text. The sealed Reward
 Integrity audit of a grader or RL environment stays at api.stardata.foundation
 until it moves here.
 
+## Worked examples
+
+https://s2ar.dev/examples/ — six walkthroughs run for real against api.s2ar.dev (read a function, pay per call,
+score a sonnet, certify a screenshot, verify a stranger's claim, read the proceedings), each receipt and record
+re-derived before publishing; and live demos on the free samples (score, verify, map, certify).
+
 ## Paying as an agent
 Every metered endpoint answers 402 with the rails: Authorization: Bearer <key>
 (credits), X-PAYMENT (x402, USDC on Base), Authorization: Payment (Stripe
