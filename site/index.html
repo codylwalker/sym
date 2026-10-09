@@ -121,7 +121,7 @@ WWW-Authenticate: Payment …                 <i># Stripe Machine Payments Proto
   <h2>Session cost, cache reads billed.</h2>
   <p class="lead">Token-reduction numbers measured on one payload say little about what a session costs; several context compressors cost more than running nothing once caching is counted. So the number on this page is the median cost of a fixed task list run as fresh sessions with and without the plugin, on a pinned public repo, cache reads billed, losses included. The first full run says something we did not expect and will not hide: Claude Code already avoids whole-file reads on its own (it greps, then reads a range), so on file-anchored questions the plugin is close to a wash and the agent reached for sym in one session out of twenty-four. Where sym earns its keep is orientation (<code>map</code>), agents without grep or ranged reads (the hosted tier), and the measurement itself.</p>
   <div id="benchTable">/*__BENCH__*/</div>
-  <p class="note">The harness is <code>bench/run.py</code> in the repo. Run it on your own repo; the table above regenerates from <code>bench/results/latest.json</code>.</p>
+  <p class="note">The harness is <code>bench/</code> in the repo, with a README on how to run it on any plugin or mod and how to read the numbers; every run is published there, losses included. Run it on your own repo; the table above regenerates from <code>bench/results/latest.json</code>.</p>
 </section>
 
 <section id="pricing">
