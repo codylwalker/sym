@@ -1,7 +1,7 @@
 {
   "name": "sym",
   "owner": { "name": "Cody Lee Walker", "email": "cody@stardata.foundation" },
-  "metadata": { "description": "sym: read the function, not the file", "version": "0.3.1" },
+  "metadata": { "description": "sym: read the function, not the file", "version": "0.3.2" },
   "plugins": [
     {
       "name": "sym",

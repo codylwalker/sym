@@ -52,6 +52,17 @@ async function symRun($, args, cwd) {
   }
 }
 
+// Is there an index at `dir`? $.fs answers for the plugin's own dirs; an
+// override dir anywhere else is asked through the shell.
+async function indexReady($, dir) {
+  try {
+    return await $.fs.exists(dir + '/meta.json')
+  } catch {
+    const r = await $.process.run({ argv: ['ls', dir + '/meta.json'] })
+    return r.exitCode === 0
+  }
+}
+
 async function gitHead($, cwd) {
   try {
     const r = await $.process.run(['git', 'rev-parse', 'HEAD'], { cwd })
@@ -111,23 +122,32 @@ export function register(on, options) {
       inputSchema: { type: 'object', properties: { name: { type: 'string' }, dir: { type: 'string' }, prefix: { type: 'boolean' } }, required: ['name'] },
     })
     // The semantic tool only when an index exists for this checkout.
+    // The semantic index: never let it cost the session. $.fs is scoped to
+    // the plugin's own directories, so an index dir elsewhere (SYM_INDEX_DIR)
+    // is probed through the shell instead; any failure here just means no
+    // `where` tool this session.
     indexDir = ''
-    const data = indexDirOverride || (await $.env.get('CLAUDE_PLUGIN_DATA'))
-    if (indexUrl && data) {
-      indexDir = indexDirOverride || (data + '/index-' + head.slice(0, 12))
-      if (!(await $.fs.exists(indexDir + '/meta.json'))) {
-        $.ui.status('sym: indexing ' + cwd + ' …')
-        const args = ['index', cwd, '--out', indexDir, '--embed-url', indexUrl]
-        if (indexModel) args.push('--embed-model', indexModel)
-        symRun($, args, cwd).then((r) => {
-          $.ui.status(r.exitCode === 0 ? 'sym: index ready' : 'sym: index failed')
+    try {
+      const data = indexDirOverride || (await $.env.get('CLAUDE_PLUGIN_DATA'))
+      if (indexUrl && data) {
+        indexDir = indexDirOverride || (data + '/index-' + head.slice(0, 12))
+        if (!(await indexReady($, indexDir))) {
+          $.ui.status('sym: indexing ' + cwd + ' …')
+          const args = ['index', cwd, '--out', indexDir, '--embed-url', indexUrl]
+          if (indexModel) args.push('--embed-model', indexModel)
+          symRun($, args, cwd).then((r) => {
+            $.ui.status(r.exitCode === 0 ? 'sym: index ready' : 'sym: index failed')
+          })
+        }
+        await $.tool.register({
+          name: 'where',
+          description: 'Code by meaning: the symbols whose text best matches a natural-language query, from the semantic index of this checkout. Use when you do not know the name of what you are looking for.',
+          inputSchema: { type: 'object', properties: { query: { type: 'string' }, k: { type: 'integer' } }, required: ['query'] },
         })
       }
-      await $.tool.register({
-        name: 'where',
-        description: 'Code by meaning: the symbols whose text best matches a natural-language query, from the semantic index of this checkout. Use when you do not know the name of what you are looking for.',
-        inputSchema: { type: 'object', properties: { query: { type: 'string' }, k: { type: 'integer' } }, required: ['query'] },
-      })
+    } catch (err) {
+      indexDir = ''
+      $.ui.log('sym: semantic index unavailable this session: ' + (err && err.message ? err.message : String(err)))
     }
     try {
       await $.command.register({ name: 'sym-stats', description: 'What sym kept out of context this session' })

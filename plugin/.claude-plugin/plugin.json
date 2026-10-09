@@ -1,7 +1,7 @@
 {
   "name": "sym",
   "displayName": "sym \u2014 read the function, not the file",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Read the function, not the file. A mod: whole-file Reads of big source files come back as symbol skeletons, the repo map arrives with your first message, and map/ls/read/find (and a semantic where) are tools. Rust, Lua, Python, TypeScript, JavaScript, Go, C, C++, Java, Ruby. Needs the sym binary (cargo install sym-cli) and Claude Code 2.1.287+ for the mod; older clients get the classic hint hook.",
   "author": {
     "name": "Cody Lee Walker",
