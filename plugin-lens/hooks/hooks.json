@@ -1,0 +1,5 @@
+{
+  "description": "lens: the mod (Claude Code 2.1.287+)",
+  "modules": ["./lens.js"],
+  "hooks": {}
+}

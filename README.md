@@ -108,6 +108,23 @@ and `buy_credits`, which returns the payment link an agent with a Link wallet
 can pay (Stripe's "monetize your MCP server" pattern). See the site for the
 402 flow.
 
+## lens: the screenshot, not the pixels
+
+A second plugin on the same marketplace, `plugin-lens/`. A whole-image Read of a
+screenshot whose longest edge is over 1024 px comes back downscaled to that
+edge (JPEG q85, the size a model reads anyway; the API itself downscales
+anything over 1568 px before the model sees it), in the engine's own image
+result shape, with one line saying what was kept out. The file on disk is
+unchanged; the resize uses the box's own tools (`sips` on macOS, ImageMagick
+elsewhere) and passes through when none is present.
+
+```
+claude plugin install lens@sym
+```
+
+Owed: an opt-in starlens certificate that the answer survived the downscale,
+and a screenshot task family in the bench.
+
 ## Measurement
 
 `bench/` runs a fixed task list with and without the plugin and reports the

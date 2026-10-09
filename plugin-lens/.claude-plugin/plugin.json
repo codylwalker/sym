@@ -1,0 +1,15 @@
+{
+  "name": "lens",
+  "version": "0.1.0",
+  "description": "lens: the screenshot, not the pixels. A whole-image Read over 1024 px comes back downscaled (JPEG q85, the size a model actually reads), with the tokens kept out on the line; optional starlens certificate that the answer survived.",
+  "author": { "name": "s2ar", "url": "https://s2ar.dev" },
+  "homepage": "https://s2ar.dev",
+  "repository": "https://github.com/codylwalker/sym",
+  "license": "PolyForm-Shield-1.0.0",
+  "keywords": ["images", "screenshots", "tokens", "context", "claude-code", "mod"],
+  "userConfig": {
+    "max_edge": { "type": "number", "title": "Longest edge", "description": "Images with a longer edge than this are downscaled before the model sees them (default 1024).", "default": 1024 },
+    "quality": { "type": "number", "title": "JPEG quality", "description": "JPEG quality for the downscaled image (default 85).", "default": 85 },
+    "min_bytes": { "type": "number", "title": "Minimum size", "description": "Images smaller than this many bytes pass through untouched (default 60000).", "default": 60000 }
+  }
+}

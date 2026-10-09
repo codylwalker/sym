@@ -1,12 +1,25 @@
 {
   "name": "sym",
-  "owner": { "name": "Cody Lee Walker", "email": "cody@stardata.foundation" },
-  "metadata": { "description": "sym: read the function, not the file", "version": "0.4.0" },
+  "owner": {
+    "name": "Cody Lee Walker",
+    "email": "cody@stardata.foundation"
+  },
+  "metadata": {
+    "description": "sym: read the function, not the file",
+    "version": "0.4.0"
+  },
   "plugins": [
     {
       "name": "sym",
       "source": "./plugin",
       "description": "Symbol-level code reads for coding agents (CLI + MCP + a Read hook). Keeps whole files out of context.",
+      "category": "productivity"
+    },
+    {
+      "name": "lens",
+      "source": "./plugin-lens",
+      "description": "lens: the screenshot, not the pixels. A whole-image Read over 1024 px comes back downscaled to the size a model reads, with the tokens kept out on the line.",
+      "version": "0.1.0",
       "category": "productivity"
     }
   ]
