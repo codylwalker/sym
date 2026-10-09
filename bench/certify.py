@@ -31,10 +31,13 @@ JUDGE = (
 
 
 def claude_bin() -> str:
-    for p in (os.path.expanduser("~/.npm-global/bin/claude"), "/opt/homebrew/bin/claude", "claude"):
-        if os.path.exists(p) or p == "claude":
-            return p
-    return "claude"
+    # The same resolution as run.py: never the `claude` on PATH, which on this
+    # box is the account router and may pick a slot at its usage limit.
+    import shutil
+    for c in (os.environ.get("CLAUDE_BIN"), "/Users/john_walker/.npm-global/bin/claude", shutil.which("claude")):
+        if c and os.path.exists(c):
+            return c
+    sys.exit("no claude binary found; set CLAUDE_BIN")
 
 
 def judge(question: str, ref: str, other: str, model: str) -> tuple[str, str]:

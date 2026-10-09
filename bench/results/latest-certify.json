@@ -1,0 +1,171 @@
+{
+ "stamp": "2026-10-08T2020Z",
+ "judge_model": "haiku",
+ "reference": "plain (median-cost run per task)",
+ "summary": {
+  "mod": {
+   "tasks": 12,
+   "agree": 5,
+   "partial": 6,
+   "disagree": 1,
+   "unclear": 0
+  },
+  "plugin": {
+   "tasks": 12,
+   "agree": 4,
+   "partial": 7,
+   "disagree": 1,
+   "unclear": 0
+  }
+ },
+ "verdicts": {
+  "mod": {
+   "defs-colors": {
+    "verdict": "partial",
+    "reason": "partial: the second answer matches the reference's documented format and values, but it is cut off mid-sentence at `{typ",
+    "plain_session": "6eec845f-b75d-465a-ac6d-f484b9c396af",
+    "session": "d39a46f0-5e70-4e4d-8afa-ef059251b86e"
+   },
+   "defs-glob": {
+    "verdict": "agree",
+    "reason": "both give the same `update` body, the `convert::string` conversion, and the push onto `args.globs`; the second adds only a true note about repeatability.",
+    "plain_session": "9eb35c21-ec15-4e40-9173-423ede4cc923",
+    "session": "297406eb-604e-41ee-a907-2ba52e024396"
+   },
+   "defs-sort": {
+    "verdict": "agree",
+    "reason": "both list the same five values with identical mappings, the `none` \u2192 `none` behaviour, and the `unk` bail; the second omits the \"overrides prior --sort/--sortr\" note.",
+    "plain_session": "728e828d-c6f9-4a11-916e-6d6a0307ac02",
+    "session": "23476048-8fd7-4758-9854-6f66cb5ba00a"
+   },
+   "gitignore-matched": {
+    "verdict": "partial",
+    "reason": "both cover `matched_stripped`'s reverse iteration, but neither answer's coverage of the ignore/whitelist mapping or `matched_path_or_any_parents` is complete.",
+    "plain_session": "736e491d-abb1-409a-8ed6-53bf88e3383f",
+    "session": "9fcd12c2-7073-460e-9917-076618448f0f"
+   },
+   "glue-fill": {
+    "verdict": "partial",
+    "reason": "both cover the roll (l.54) and consume (l.55) steps, but the second omits the line-50 consumption assertion and both are cut off before the end-of-input signalling.",
+    "plain_session": "872746f8-6b9f-4f31-907a-172cb79ffee4",
+    "session": "043341b0-ee10-4a19-a99d-3be052158f11"
+   },
+   "json-begin": {
+    "verdict": "agree",
+    "reason": "both name `path` alone for `begin` and `path`, `binary_offset`, `stats` for `finish`, citing the same json.rs functions and lines; the second adds types and the lazy-begin path.",
+    "plain_session": "2dc03d80-e2ec-4401-a014-d7203f616aad",
+    "session": "e9b630fb-ddc7-4ca8-867b-ebfdb0e17677"
+   },
+   "orient-flag-arch": {
+    "verdict": "partial",
+    "reason": "both name `defs.rs` and the `flag` trait in `mod.rs`, but the visible text cuts off before the conversion file, and the second answer says five files where the first says three.",
+    "plain_session": "8192f97e-c56a-4403-9099-b3788e464f7f",
+    "session": "5cf08b5b-26b8-4cf1-8d04-f421508fbbac"
+   },
+   "orient-printer": {
+    "verdict": "partial",
+    "reason": "both answers give the same three formats, files and types, but the second cuts off before naming the shared module dependency the question asks for.",
+    "plain_session": "5e7e3d3d-d463-4faf-a65f-024d27a424cf",
+    "session": "23bc165a-a57b-4c4d-9adf-e313ce629e93"
+   },
+   "orient-tests": {
+    "verdict": "disagree",
+    "reason": "disagree: the second answer names `dir` as the main type where the first names `testcommand`, though both types appear i",
+    "plain_session": "17f13557-d91a-42c1-a69e-31a3c8a3d8ea",
+    "session": "8e113f7c-4ccb-4041-961a-d7988e8adf20"
+   },
+   "orient-walker": {
+    "verdict": "agree",
+    "reason": "crate, file, walkbuilder/walkparallel locations, and every visible entry point match the first answer; both are truncated at the end, so the tail is unverified.",
+    "plain_session": "49cf6dcd-56de-4865-b344-9aecb8095f91",
+    "session": "c9327bbd-510b-460a-88ee-9a308bb9cd89"
+   },
+   "standard-sep": {
+    "verdict": "partial",
+    "reason": "same method (`write_context_separator`, 1485-1491) and caller (`context_break`, 877-883), but it omits the condition's line (1486) and its text is cut off.",
+    "plain_session": "2810d8e9-769b-4798-8287-831731172c6d",
+    "session": "2aaf2704-1aaa-4549-9c6d-3cba71e31098"
+   },
+   "walk-skip": {
+    "verdict": "agree",
+    "reason": "both give the same ordering and line citations for depth-0, ignore rules, and stdout; the reference is truncated, so later items can't be compared.",
+    "plain_session": "978abf95-1de1-4a71-8ebf-da6e6d0af1d9",
+    "session": "11e2c8d2-ade0-4410-8f02-ac55c4f52423"
+   }
+  },
+  "plugin": {
+   "defs-colors": {
+    "verdict": "partial",
+    "reason": "both give the same `{type}:{attribute}:{value}` format and values, but neither explains how update builds the colorspecs entry, which the question asked for.",
+    "plain_session": "6eec845f-b75d-465a-ac6d-f484b9c396af",
+    "session": "923633c7-818f-41f3-84fc-75326c9fe2d9"
+   },
+   "defs-glob": {
+    "verdict": "agree",
+    "reason": "both give the same `update` body, `convert::string` conversion, and `args.globs` push into `vec<string>`, with the same line range.",
+    "plain_session": "9eb35c21-ec15-4e40-9173-423ede4cc923",
+    "session": "37ebc3e2-803e-4aca-ab64-a4b98f8459d5"
+   },
+   "defs-sort": {
+    "verdict": "agree",
+    "reason": "both list the same five values (none, path, modified, accessed, created) with identical mappings and the same bail on unknown values; only the end line differs by one.",
+    "plain_session": "728e828d-c6f9-4a11-916e-6d6a0307ac02",
+    "session": "b7ca7f86-38c1-4792-bb0e-61ec6652b8fc"
+   },
+   "gitignore-matched": {
+    "verdict": "partial",
+    "reason": "both give the same core (globset matches iterated in reverse, last match wins), but both answers are cut off, and neither visibly covers the `matched_path_or_any_parents` addition or the dir-only skip.",
+    "plain_session": "736e491d-abb1-409a-8ed6-53bf88e3383f",
+    "session": "9304c666-b359-4151-9189-3f469411b59a"
+   },
+   "glue-fill": {
+    "verdict": "partial",
+    "reason": "both agree on the line-50 assert and the `core.roll` step, but the second answer is cut off before it explains the eof signal and omits the `rdr.consume` call.",
+    "plain_session": "872746f8-6b9f-4f31-907a-172cb79ffee4",
+    "session": "8692fec5-2897-41ca-8440-732c91daeac9"
+   },
+   "json-begin": {
+    "verdict": "partial",
+    "reason": "the second answer matches the first on `begin` (only `path`) and the start of `finish` (`path`, `binary_offset`), but it cuts off before naming `stats`.",
+    "plain_session": "2dc03d80-e2ec-4401-a014-d7203f616aad",
+    "session": "26f2fcb9-39e0-43e9-ab31-9b572975fe2e"
+   },
+   "orient-flag-arch": {
+    "verdict": "partial",
+    "reason": "both answers agree on `defs.rs`, the `flag` trait and `update(&self, flagvalue, &mut lowargs)`, but the second is cut off before it names the low-to-high conversion file.",
+    "plain_session": "8192f97e-c56a-4403-9099-b3788e464f7f",
+    "session": "7d534d5a-897c-48a4-b837-6aa39116a2bd"
+   },
+   "orient-printer": {
+    "verdict": "partial",
+    "reason": "both list the same three formats, files and types (standard, json, summary), but the second answer cuts off before naming the shared module the question asks for.",
+    "plain_session": "5e7e3d3d-d463-4faf-a65f-024d27a424cf",
+    "session": "29257e6c-82d2-48bb-b21c-4bcfd23ffada"
+   },
+   "orient-tests": {
+    "verdict": "disagree",
+    "reason": "main type is `dir` instead of `testcommand`, and the three example files differ (multiline, regression vs. feature, binary).",
+    "plain_session": "17f13557-d91a-42c1-a69e-31a3c8a3d8ea",
+    "session": "88185ec9-d44c-49ec-b691-49184d971b76"
+   },
+   "orient-walker": {
+    "verdict": "partial",
+    "reason": "the entry-point list matches the first up to `sam`, then cuts off before `same_file_system`, `skip_stdout` and `filter_entry`.",
+    "plain_session": "49cf6dcd-56de-4865-b344-9aecb8095f91",
+    "session": "10758595-5736-4785-9b68-fb5d28348d83"
+   },
+   "standard-sep": {
+    "verdict": "agree",
+    "reason": "both name `write_context_separator` at 1485-1491, the `separator_context` condition, and `context_break` at 877-883; the second cuts off before naming the delegation target.",
+    "plain_session": "2810d8e9-769b-4798-8287-831731172c6d",
+    "session": "28b28360-23e8-4248-8944-d9caef9200b8"
+   },
+   "walk-skip": {
+    "verdict": "agree",
+    "reason": "both give the same ordered checks: depth 0, ignore rules at 945\u2013947, and the stdout path comparison at 948\u2013952; both answers are cut off after that.",
+    "plain_session": "978abf95-1de1-4a71-8ebf-da6e6d0af1d9",
+    "session": "910ac4f1-bda1-4537-8af6-2a0512541d23"
+   }
+  }
+ }
+}
