@@ -11,6 +11,7 @@ judge runs through `claude -p` from the same home as the bench (no plugin).
 Parses as Python 3.10."""
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import statistics
@@ -67,7 +68,37 @@ def median_row(rows: list[dict]) -> dict | None:
     return ok[len(ok) // 2]
 
 
+def assay_record(out: dict, judged_arm: str = "mod") -> dict:
+    """The judge's verdicts as an assay/2 record (kind answer-agreement): sealed
+    with sha256 over the canonical form, `replayable: false` because a model
+    judged, issuer "self" unless an issuer signs it elsewhere. The envelope is
+    the published standard at https://api.s2ar.dev/assay/standard."""
+    summ = (out.get("summary") or {}).get(judged_arm) or {}
+    verdict = "agree" if summ.get("agree", 0) > (summ.get("partial", 0) + summ.get("disagree", 0)) else "partial" if summ.get("agree", 0) else "disagree"
+    rec = {
+        "v": 2, "issuer": "self", "kind": "answer-agreement",
+        "subject": [{"role": "results", "sha256": hashlib.sha256(json.dumps(out.get("verdicts") or {}, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()}],
+        "harness": {"name": "sym-bench-certify", "version": "0.1.0"}, "seed": 0,
+        "witnesses": [{"name": "judge", "deterministic": False, "model": out.get("judge_model", "haiku")}],
+        "verdict": verdict,
+        "outcome": {"agree": "pass", "partial": "partial", "disagree": "fail"}[verdict],
+        "replayable": False,
+        "payload": {"stamp": out.get("stamp"), "reference": out.get("reference"), "arm": judged_arm, "summary": summ,
+                    "arms": out.get("summary"), "note": out.get("note")},
+    }
+    rec["record_sha256"] = hashlib.sha256(json.dumps(rec, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()
+    return rec
+
+
 def main() -> int:
+    if "--envelope-from" in sys.argv:
+        src = sys.argv[sys.argv.index("--envelope-from") + 1]
+        out = json.load(open(src, encoding="utf-8"))
+        rec = assay_record(out)
+        dst = os.path.join(RESULTS, out["stamp"] + "-assay.json")
+        json.dump(rec, open(dst, "w", encoding="utf-8"), indent=1)
+        print("wrote", dst, rec["record_sha256"][:16], rec["verdict"], rec["outcome"])
+        return 0
     path = sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("--") else os.path.join(RESULTS, "latest.json")
     model = sys.argv[sys.argv.index("--model") + 1] if "--model" in sys.argv else "haiku"
     j = json.load(open(path, encoding="utf-8"))
@@ -101,7 +132,10 @@ def main() -> int:
         json.dump(out, f, indent=1)
     with open(os.path.join(RESULTS, "latest-certify.json"), "w", encoding="utf-8") as f:
         json.dump(out, f, indent=1)
-    print("wrote", out_path)
+    rec = assay_record(out, "mod" if "mod" in verdicts else arms[0] if arms else "mod")
+    with open(os.path.join(RESULTS, j["stamp"] + "-assay.json"), "w", encoding="utf-8") as f:
+        json.dump(rec, f, indent=1)
+    print("wrote", out_path, "and the assay record", rec["record_sha256"][:16])
     return 0
 
 

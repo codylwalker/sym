@@ -1,0 +1,56 @@
+{
+ "v": 2,
+ "issuer": "self",
+ "kind": "answer-agreement",
+ "subject": [
+  {
+   "role": "results",
+   "sha256": "68fb9412096d949f52a47e86c6ea3a920c6094c208fef76511ecc325b2a22f79"
+  }
+ ],
+ "harness": {
+  "name": "sym-bench-certify",
+  "version": "0.1.0"
+ },
+ "seed": 0,
+ "witnesses": [
+  {
+   "name": "judge",
+   "deterministic": false,
+   "model": "haiku"
+  }
+ ],
+ "verdict": "partial",
+ "outcome": "partial",
+ "replayable": false,
+ "payload": {
+  "stamp": "2026-10-08T2020Z",
+  "reference": "plain (median-cost run per task)",
+  "arm": "mod",
+  "summary": {
+   "tasks": 12,
+   "agree": 5,
+   "partial": 6,
+   "disagree": 1,
+   "unclear": 0
+  },
+  "arms": {
+   "mod": {
+    "tasks": 12,
+    "agree": 5,
+    "partial": 6,
+    "disagree": 1,
+    "unclear": 0
+   },
+   "plugin": {
+    "tasks": 12,
+    "agree": 4,
+    "partial": 7,
+    "disagree": 1,
+    "unclear": 0
+   }
+  },
+  "note": "Answers in this result were stored cut at 600 characters; most \"partial\" verdicts cite the cut, not a different answer. Later results store 2,000."
+ },
+ "record_sha256": "99cd791cf4a6312e7050ef95c05e83eb20ebdf147e924584ead4321166a3f5ea"
+}
