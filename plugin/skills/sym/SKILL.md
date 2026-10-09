@@ -50,7 +50,7 @@ Haiku-written line. Older clients get the classic hint hook.
 ## Install
 
 ```
-cargo install sym-cli          # the binary is `sym`
+cargo install starlab-sym          # the binary is `sym`
 ```
 
 The plugin's hook speaks up when a Read is about to pull a big source file.

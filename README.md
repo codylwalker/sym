@@ -15,7 +15,7 @@ Languages: Rust, Lua, Python, TypeScript/TSX, JavaScript, Go, C, C++, Java, Ruby
 ## Install
 
 ```
-cargo install sym-cli        # the binary is `sym`
+cargo install starlab-sym        # the binary is `sym`
 ```
 
 ## The three verbs
@@ -54,7 +54,7 @@ Tested with Claude Code 2.1.294.
 
 ```
 claude plugin marketplace add https://github.com/codylwalker/sym
-claude plugin install sym@sym
+claude plugin install sym@starlab
 ```
 
 **Code by meaning, locally.** `sym index <dir> --out <idx> --embed-url <base>`
@@ -119,7 +119,7 @@ unchanged; the resize uses the box's own tools (`sips` on macOS, ImageMagick
 elsewhere) and passes through when none is present.
 
 ```
-claude plugin install lens@sym
+claude plugin install lens@starlab
 ```
 
 Owed: an opt-in starlens certificate that the answer survived the downscale,

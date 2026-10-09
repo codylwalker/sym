@@ -1,12 +1,13 @@
 {
-  "name": "sym",
+  "name": "starlab",
   "owner": {
-    "name": "Cody Lee Walker",
-    "email": "cody@stardata.foundation"
+    "name": "s2ar",
+    "email": "cody@stardata.foundation",
+    "url": "https://s2ar.dev"
   },
   "metadata": {
-    "description": "sym: read the function, not the file",
-    "version": "0.4.0"
+    "description": "s2ar's tools for Claude Code: sym (read the function, not the file) and lens (the screenshot, not the pixels)",
+    "version": "0.4.1"
   },
   "plugins": [
     {

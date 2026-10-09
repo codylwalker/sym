@@ -1,7 +1,7 @@
 # Assay — the standard (assay/2)
 
 An assay is a measurement of content, never an opinion. Every tool at s2ar that
-measures something (starlens's image compression, starscry's reward-integrity
+measures something (starlens's image compression, stardata's reward-integrity
 audits, sym's answer-agreement judge) issues the same record, and anyone can
 verify one for free, forever, without an account. The record keeps hashes,
 dimensions and verdicts, never pixels, prompts, or a buyer's identity.
@@ -61,3 +61,16 @@ issue. Payment buys the measurement run and the mark, never the verdict: a
 No position is sold anywhere a record orders a list. No retention beyond the
 record. No signing without a run, no backdating, no revocation of an issued
 record: verify answers for every sha ever issued.
+
+## The 402 body and the receipt
+
+A metered route that is not yet paid answers 402 with the x402 quote in `accepts[]`
+untouched (a facilitator verifies against it byte for byte) and, as top-level
+siblings of it: `evidence: "assay"`, `refund_rule`, `determinism`
+(`replayable` | `model_in_loop`), `witnesses[]`, `expected_latency_ms`, `charter`
+and `proceedings` (URLs). A served answer carries `receipt`
+(`evidence_hash` = sha256 over the canonical answer, `cost_usd`, `what`,
+`determinism`, `witnesses`, `issued_at`, `refund_rule`, `charter`, and when the
+answer is itself an Assay record its `record_sha256` and a `verify` URL) and the
+header `X-Assay-Receipt`. The receipt is the buyer's; the issuer keeps one line
+per call (`what`, cost, rail, delivered, latency) and nothing about the caller.

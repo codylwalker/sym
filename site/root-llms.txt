@@ -6,8 +6,8 @@ them (credits bought once work everywhere); failed calls are never charged;
 nothing is logged. Prices are not final.
 
 ## sym — read the function, not the file
-Local, free (PolyForm Shield): `cargo install sym-cli`; Claude Code plugin
-`claude plugin marketplace add https://github.com/codylwalker/sym && claude plugin install sym@sym`
+Local, free (PolyForm Shield): `cargo install starlab-sym`; Claude Code plugin
+`claude plugin marketplace add https://github.com/codylwalker/sym && claude plugin install sym@starlab`
 (a mod on 2.1.287+: a whole-file Read of a big source file comes back as its
 symbol skeleton, the repo map arrives with the first message, map/ls/read/find
 and where are tools, every turn's line reads in dollars). Hosted over any public
@@ -22,7 +22,7 @@ plain on 10 of 12 (Haiku judge). The harness and every run: the repo's bench/.
 Page: https://s2ar.dev/sym/  Docs for agents: https://s2ar.dev/sym/llms.txt
 
 ## lens — the screenshot, not the pixels
-Claude Code plugin `claude plugin install lens@sym`: a whole-image Read over
+Claude Code plugin `claude plugin install lens@starlab`: a whole-image Read over
 1024 px on its longest edge comes back downscaled (JPEG q85, the size a model
 reads anyway) in the engine's own image shape, with the tokens kept out on the
 line; the file on disk is unchanged. Free. Certificate (starlens) owed.
@@ -34,7 +34,7 @@ a sealed record that the compressed image yields the same answer; GET
 Measured over 12,123 sealed VLM calls: 0.96–0.97 answer retention at 12–22%
 billed savings. Page: https://s2ar.dev/
 
-## score — evidence about a text, not an opinion (starscry)
+## score — evidence about a text, not an opinion
 POST https://api.s2ar.dev/v1/score {text, form | spec}: programmatic verifiers
 (meter, rhyme, syllables; CMUdict-pinned, replayable) against a named form
 (GET /v1/score/forms, free) or an inline spec; scores, a composite, an accepted

@@ -6,15 +6,15 @@ Operated by Stardata (Cody Lee Walker, Canada). Contact: cody@stardata.foundatio
 
 ## Local (free)
 
-- Install: `cargo install sym-cli` (binary `sym`).
+- Install: `cargo install starlab-sym` (binary `sym`).
 - CLI: `sym ls <file>`, `sym read <file> <symbol>`, `sym find <name> [dir]`, `sym map <dir> --budget N`, `sym index <dir> --out <idx> --embed-url <base>` + `sym where "<question>" --index <idx>` (code by meaning); `--json`, `--est`.
 - MCP over stdio: `{"command":"sym","args":["mcp"]}` → tools `sym_ls`, `sym_read`, `sym_find`, `sym_map`.
-- Claude Code (2.1.287+): `claude plugin marketplace add https://github.com/codylwalker/sym && claude plugin install sym@sym` — a mod: a whole-file Read of a big source file comes back as its skeleton, the repo map arrives with the first message, map/ls/read/find/where are tools, each turn's line reads in dollars. Measured (bench/): −21.8% median paired session cost vs plain on 12 ripgrep tasks, answers agreed on 10 of 12.
-- Claude Code plugin: `claude plugin marketplace add https://github.com/codylwalker/sym` then `claude plugin install sym@sym`.
+- Claude Code (2.1.287+): `claude plugin marketplace add https://github.com/codylwalker/sym && claude plugin install sym@starlab` — a mod: a whole-file Read of a big source file comes back as its skeleton, the repo map arrives with the first message, map/ls/read/find/where are tools, each turn's line reads in dollars. Measured (bench/): −21.8% median paired session cost vs plain on 12 ripgrep tasks, answers agreed on 10 of 12.
+- Claude Code plugin: `claude plugin marketplace add https://github.com/codylwalker/sym` then `claude plugin install sym@starlab`.
 
 ## Hosted (paid per call)
 
-- MCP over HTTP: `claude mcp add --transport http sym-hosted https://api.s2ar.dev/mcp --header "Authorization: Bearer <key>"`. Tools `sym_map_repo`, `sym_ls_repo`, `sym_read_repo`, `sym_find_repo`, `sym_where_repo` (code by meaning; the first call on a repository starts its index and answers "indexing", call again in a moment), `score_text` (a text against a poetic form, starscry), `buy_credits` (returns the payment link; pay it with the Link agent wallet, then send the key as the Bearer header).
+- MCP over HTTP: `claude mcp add --transport http sym-hosted https://api.s2ar.dev/mcp --header "Authorization: Bearer <key>"`. Tools `sym_map_repo`, `sym_ls_repo`, `sym_read_repo`, `sym_find_repo`, `sym_where_repo` (code by meaning; the first call on a repository starts its index and answers "indexing", call again in a moment), `score_text` (a text against a poetic form), `buy_credits` (returns the payment link; pay it with the Link agent wallet, then send the key as the Bearer header).
 
 - `POST https://api.s2ar.dev/v1/sym/map` body `{"repo": "<public git url>", "ref": "<tag|branch>", "budget": 1000}` → `{ok, text, data, tokens_est, charged_usd}`. $0.01 per call.
 - `POST https://api.s2ar.dev/v1/sym/read` body `{"repo", "ref", "file", "symbol"}`; `/v1/sym/ls` `{"repo","ref","file"}`; `/v1/sym/find` `{"repo","ref","name","prefix?"}`. $0.005 per call.

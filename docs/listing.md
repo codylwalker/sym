@@ -5,7 +5,7 @@
 - **Plugin repo:** https://github.com/codylwalker/sym (marketplace at `.claude-plugin/marketplace.json`, plugin at `plugin/`)
 - **Name:** sym
 - **Tagline:** Read the function, not the file.
-- **Description:** Symbol-level code reads for coding agents. `sym ls` gives a file's skeleton with line ranges, `sym read` one symbol with its docs, `sym map` a budgeted map of a directory ranked by import fan-in. Whole files stay out of context, so prompt caching stays intact. Ships a skill, an MCP server (`sym_ls`, `sym_read`, `sym_map`) and a Read hook (`SYM_HOOK_MODE=deny` refuses whole-file Reads of big source files). Rust, Lua, Python, TypeScript/TSX, JavaScript, Go, C, C++, Java, Ruby. Needs the `sym` binary: `cargo install sym-cli`.
+- **Description:** Symbol-level code reads for coding agents. `sym ls` gives a file's skeleton with line ranges, `sym read` one symbol with its docs, `sym map` a budgeted map of a directory ranked by import fan-in. Whole files stay out of context, so prompt caching stays intact. Ships a skill, an MCP server (`sym_ls`, `sym_read`, `sym_map`) and a Read hook (`SYM_HOOK_MODE=deny` refuses whole-file Reads of big source files). Rust, Lua, Python, TypeScript/TSX, JavaScript, Go, C, C++, Java, Ruby. Needs the `sym` binary: `cargo install starlab-sym`.
 - **Category:** productivity / developer tools
 - **Homepage:** https://s2ar.dev/sym/ · **Docs:** https://s2ar.dev/sym/#docs · **Support:** https://github.com/codylwalker/sym/issues
 - **Privacy:** https://s2ar.dev/sym/privacy.html · **Terms:** https://s2ar.dev/sym/terms.html
@@ -24,7 +24,7 @@ MCP server (Streamable HTTP): https://api.s2ar.dev/mcp — tools sym_map_repo, s
 
 Example prompts:
 1. "Map https://github.com/BurntSushi/ripgrep at 14.1.1 through api.s2ar.dev with a 1200-token budget and tell me which file has the most importers."
-2. "Using sym.s2ar.dev, read the function that parses the --glob flag in ripgrep's crates/core/flags/defs.rs and explain what it does with a leading '!'."
+2. "Using s2ar.dev/sym, read the function that parses the --glob flag in ripgrep's crates/core/flags/defs.rs and explain what it does with a leading '!'."
 3. "Before reading any source file over 200 lines, run sym ls on it and pick the symbol."
 
 What we sell to agents: `POST /v1/sym/map` ($0.01) and `POST /v1/sym/read` ($0.005) over any public git URL, paid per call over MPP (SPT cards or Tempo USDC), x402 (USDC on Base), or prepaid credits. Failed requests are never charged.

@@ -63,7 +63,7 @@
   <div class="eyebrow">symbol-level code reads</div>
   <h1>Read the function, not the file.</h1>
   <p class="lead">Once a whole file is in an agent's context it is replayed on every turn, and nothing that compresses it afterwards can undo that without breaking the prompt cache. <b>sym</b> keeps the file out in the first place: a skeleton, one symbol, or a budgeted map of a directory, parsed with tree-sitter.</p>
-  <div class="heroCta"><a class="btn" href="#install">cargo install sym-cli</a><a class="btn ghost" href="#agents">The 402 flow for agents</a></div>
+  <div class="heroCta"><a class="btn" href="#install">cargo install starlab-sym</a><a class="btn ghost" href="#agents">The 402 flow for agents</a></div>
   <div class="nums">
     <div class="n good"><div class="v">/*__COST__*/</div><div class="k">median session cost with the plugin vs without, cache reads billed (<a href="#measured">the whole table</a>)</div></div>
     <div class="n"><div class="v">11</div><div class="k">languages: Rust, Lua, Python, TypeScript/TSX, JavaScript, Go, C, C++, Java, Ruby</div></div>
@@ -74,7 +74,7 @@
 <section id="install">
   <div class="eyebrow">install</div>
   <h2>One binary. Three verbs.</h2>
-<pre><b>$</b> cargo install sym-cli            <i># the binary is `sym`</i>
+<pre><b>$</b> cargo install starlab-sym            <i># the binary is `sym`</i>
 <b>$</b> sym ls src/ops.rs                <i># every symbol: line range + signature</i>
 src/ops.rs — 271 lines, 14 symbols
    10-15    pub struct LsOut
@@ -86,7 +86,7 @@ src/ops.rs — 271 lines, 14 symbols
   <div class="grid2">
     <div class="card"><h3>Claude Code plugin</h3><p>A skill that says when to use which verb, the MCP server, and a hook that nudges any whole-file Read of a big source file toward the skeleton. Silent when sym is not installed.</p>
 <pre><b>$</b> claude plugin marketplace add https://github.com/codylwalker/sym
-<b>$</b> claude plugin install sym@sym</pre></div>
+<b>$</b> claude plugin install sym@starlab</pre></div>
     <div class="card"><h3>Any MCP client</h3><p>Tools <code>sym_ls</code>, <code>sym_read</code>, <code>sym_map</code> over stdio. Same arguments as the CLI; <code>json: true</code> for structured results.</p>
 <pre>{ "sym": { "command": "sym", "args": ["mcp"] } }</pre></div>
   </div>
@@ -129,7 +129,7 @@ WWW-Authenticate: Payment …                 <i># Stripe Machine Payments Proto
   <h2>Free where it runs on your machine. Cents where we run it.</h2>
   <div class="grid2">
     <div class="card"><h3>Local: free</h3><p>The CLI, the Claude Code plugin and the MCP server. Source-available under PolyForm Shield 1.0.0: read it, build it, self-host it.</p></div>
-    <div class="card"><h3>Hosted: per call</h3><p><code>/v1/sym/map</code> $0.01 · <code>/v1/sym/read</code>, <code>/ls</code>, <code>/find</code> $0.005 · <code>/v1/sym/where</code> (code by meaning, over a semantic index we build once per checkout on our own GPU) $0.02 · <code>/v1/score</code> (a text against a poetic form, programmatic verifiers; starscry) $0.005. Credit packs of $5, $25 and $100 through Stripe, or pay per call from a wallet. One ledger for every s2ar API; credits you buy for sym also pay for <a href="https://s2ar.dev">starlens</a> certificates.</p></div>
+    <div class="card"><h3>Hosted: per call</h3><p><code>/v1/sym/map</code> $0.01 · <code>/v1/sym/read</code>, <code>/ls</code>, <code>/find</code> $0.005 · <code>/v1/sym/where</code> (code by meaning, over a semantic index we build once per checkout on our own GPU) $0.02 · <code>/v1/score</code> (a text against a poetic form, programmatic verifiers) $0.005. Credit packs of $5, $25 and $100 through Stripe, or pay per call from a wallet. One ledger for every s2ar API; credits you buy for sym also pay for <a href="https://s2ar.dev">starlens</a> certificates.</p></div>
   </div>
 </section>
 

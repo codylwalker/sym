@@ -15,7 +15,7 @@ import { usdDelta, turnLine, meterSummary } from './meter.js'
 //   session.measure samples the engine's cost ledger (the meter)
 //   turn.complete   prints what was kept out and what the turn cost
 //
-// Every shell call goes through the `sym` binary (cargo install sym-cli).
+// Every shell call goes through the `sym` binary (cargo install starlab-sym).
 // When it is missing, every hook passes the event on unchanged.
 
 const SOURCE_EXT = /\.(rs|lua|py|pyi|ts|tsx|mts|cts|js|jsx|mjs|cjs|go|c|h|cpp|cc|cxx|hpp|hh|hxx|java|rb)$/i
