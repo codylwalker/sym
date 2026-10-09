@@ -98,7 +98,7 @@ def run_one(task: dict, arm: str, cwd: str, model: str) -> dict:
     allowed = ["Read", "Grep", "Glob", "LS"]
     cmd = [claude_bin(), "-p", task["prompt"], "--output-format", "json", "--model", model,
            "--permission-mode", "default"]
-    if arm in ("plugin", "mod"):
+    if arm == "plugin" or arm.startswith("mod"):
         cmd += ["--plugin-dir", PLUGIN]
         # Plugin-provided MCP servers are namespaced plugin_<plugin>_<server>;
         # the mod's registered tools are mcp__sym__<name>.
@@ -112,10 +112,16 @@ def run_one(task: dict, arm: str, cwd: str, model: str) -> dict:
         # The hint alone measured as ignored (the agent Greps and does ranged
         # Reads). The product's teeth are the deny mode, so that is the arm.
         env["SYM_HOOK_MODE"] = os.environ.get("SYM_BENCH_HOOK_MODE", "deny")
-    if arm == "mod":
+    if arm.startswith("mod"):
         # The mod (Claude Code 2.1.287+): a whole-file Read of a big source
         # file is answered with its skeleton; the classic hook stays quiet.
+        # Ablations: mod-sum adds Haiku file summaries to the map (cached per
+        # commit, so only the first session pays), mod-nomap sends no map.
         env["SYM_HOOK_MODE"] = "off"
+        if arm == "mod-sum":
+            env["SYM_SUMMARIES"] = "haiku-wait"
+        if arm == "mod-nomap":
+            env["SYM_MAP_BUDGET"] = "0"
     t0 = time.time()
     r = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=900, env=env)
     wall = time.time() - t0
@@ -219,8 +225,8 @@ def summarize(rows: list[dict]) -> dict:
             continue
         per_task.setdefault(r["task"], {}).setdefault(r["arm"], []).append(r["cost_usd"])
     summary["arms"] = {}
-    for other in ("mod", "plugin"):
-        if "plain" not in summary or other not in summary:
+    for other in [a for a in ("mod", "mod-sum", "mod-nomap", "plugin") if a in summary]:
+        if "plain" not in summary:
             continue
         a, b = summary["plain"]["cost_median"], summary[other]["cost_median"]
         deltas: dict = {}
@@ -256,7 +262,7 @@ def table(rows: list[dict], summary: dict) -> str:
             r["task"], r["arm"], r["cost_usd"], r["input"], r["cache_read"], r["turns"],
             r["tools"]["Read"], r["tools"]["sym_bash"] + r["tools"]["sym_mcp"]))
     lines.append("")
-    for arm in ("plain", "plugin", "mod"):
+    for arm in ("plain", "plugin", "mod", "mod-sum", "mod-nomap"):
         s = summary.get(arm)
         if s:
             lines.append("**%s**: n=%d · median cost %.4f · mean %.4f · median cache read %s · median turns %s · Reads %d · sym calls %d · skeleton answers %d" % (

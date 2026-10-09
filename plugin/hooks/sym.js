@@ -28,6 +28,7 @@ let indexUrl = ''
 let indexModel = ''
 let indexDirOverride = ''
 let summariesMode = ''
+let mapBudget = 600
 let envResolved = false
 
 // The plugin config sets the index URL and model for an installed plugin; the
@@ -36,10 +37,14 @@ let envResolved = false
 async function resolveEnv($) {
   if (envResolved) return
   envResolved = true
-  indexUrl = indexUrl || (await $.env.get('SYM_INDEX_URL')) || ''
-  indexModel = indexModel || (await $.env.get('SYM_INDEX_MODEL')) || ''
+  // The environment wins over the plugin config: a manifest default (such
+  // as summaries "off") must not shadow a switch set for one session.
+  indexUrl = (await $.env.get('SYM_INDEX_URL')) || indexUrl || ''
+  indexModel = (await $.env.get('SYM_INDEX_MODEL')) || indexModel || ''
   indexDirOverride = (await $.env.get('SYM_INDEX_DIR')) || ''
-  summariesMode = summariesMode || (await $.env.get('SYM_SUMMARIES')) || 'off'
+  summariesMode = (await $.env.get('SYM_SUMMARIES')) || summariesMode || 'off'
+  const mb = await $.env.get('SYM_MAP_BUDGET')
+  if (mb !== undefined && mb !== null && mb !== '') mapBudget = Number(mb)
 }
 
 function tokens(bytes) {
@@ -77,15 +82,31 @@ async function summarize($, mapText, sumKey) {
     const answers = await Promise.all(batch.map(async (f) => {
       try {
         const r = await $.model.complete({ model: 'haiku', prompt: summaryPrompt(f.file, f.block) })
+        if (!(r && r.isAnswered)) await diag($, 'summary of ' + f.file + ' not answered: ' + (r && r.reason ? JSON.stringify(r.reason).slice(0, 160) : JSON.stringify(r).slice(0, 160)))
         return r && r.isAnswered ? cleanSummary(r.text) : ''
-      } catch {
+      } catch (err) {
+        await diag($, 'summary of ' + f.file + ' threw: ' + (err && err.message ? err.message : String(err)))
         return ''
       }
     }))
     batch.forEach((f, j) => { if (answers[j]) out[f.file] = answers[j] })
   }
   if (Object.keys(out).length) await $.store.set(sumKey, out)
+  await diag($, 'summaries ' + Object.keys(out).length + '/' + files.length + ' files')
   return out
+}
+
+// Diagnostic lines kept in the store (capped), readable through the `diag`
+// tool, since neither $.ui.log nor $.fs reach a file we can read from outside.
+async function diag($, line) {
+  try {
+    const prev = await $.store.get('sym.diag')
+    const lines = Array.isArray(prev) ? prev : []
+    lines.push(new Date().toISOString() + ' ' + line)
+    await $.store.set('sym.diag', lines.slice(-60))
+  } catch {
+    // diagnostics never matter to the session
+  }
 }
 
 async function gitHead($, cwd) {
@@ -100,7 +121,7 @@ async function gitHead($, cwd) {
 export function register(on, options) {
   const readMode = (options && options.read_mode) || 'skeleton'
   const minLines = Number((options && options.min_lines) || 200)
-  const mapBudget = Number((options && options.map_budget) || 600)
+  mapBudget = Number((options && options.map_budget) || 600)
   // The plugin config sets these for an installed plugin; the environment
   // (SYM_INDEX_URL, SYM_INDEX_MODEL, SYM_INDEX_DIR) covers --plugin-dir runs
   // and the bench, and is resolved once the session starts.
@@ -115,7 +136,9 @@ export function register(on, options) {
     const key = 'sym.map.' + cwd + '@' + head
     // The repo map, cached per HEAD so prompt.context stays cache-stable.
     const cached = await $.store.get(key)
-    if (typeof cached === 'string') {
+    if (!(mapBudget > 0)) {
+      repoMap = ''   // SYM_MAP_BUDGET=0 / map_budget 0: no map with the first message
+    } else if (typeof cached === 'string') {
       repoMap = cached
     } else {
       const r = await symRun($, ['map', cwd, '--budget', String(mapBudget)], cwd)
@@ -125,13 +148,24 @@ export function register(on, options) {
     // File summaries (opt-in): one haiku line per file, cached per HEAD, and
     // computed AFTER this hook returns so the session never waits on them;
     // the first session gets the plain map, later ones the annotated one.
-    if (summariesMode === 'haiku' && repoMap) {
+    if ((summariesMode === 'haiku' || summariesMode === 'haiku-wait') && repoMap) {
       const sumKey = key + ':summaries'
       const have = await $.store.get(sumKey)
-      if (have && typeof have === 'object') {
+      await diag($, 'summaries: mode=' + summariesMode + ' have=' + (have && typeof have === 'object' ? Object.keys(have).length + ' files' : String(have)))
+      if (have && typeof have === 'object' && Object.keys(have).length > 0) {
         repoMap = withSummaries(repoMap, have)
+      } else if (summariesMode === 'haiku-wait') {
+        // Wait for them (the model's time is not charged to the hook's budget):
+        // the first session already gets the annotated map.
+        try {
+          const t0 = Date.now()
+          repoMap = withSummaries(repoMap, await summarize($, repoMap, sumKey))
+          await diag($, 'summaries took ' + (Date.now() - t0) + ' ms')
+        } catch (err) {
+          $.ui.log('sym: summaries failed: ' + (err && err.message ? err.message : String(err)))
+        }
       } else {
-        summarize($, repoMap, sumKey).catch(() => {})
+        summarize($, repoMap, sumKey).catch((err) => $.ui.log('sym: summaries failed: ' + (err && err.message ? err.message : String(err))))
       }
     }
     // Tools for Claude. Each handler shells to sym and returns its text.
@@ -187,6 +221,12 @@ export function register(on, options) {
       indexDir = ''
       $.ui.log('sym: semantic index unavailable this session: ' + (err && err.message ? err.message : String(err)))
     }
+    await $.tool.register({
+      name: 'diag',
+      isDeferred: false,
+      description: 'sym plugin diagnostics (the last lines the mod logged); for debugging the plugin, not the code.',
+      inputSchema: { type: 'object', properties: {} },
+    })
     try {
       await $.command.register({ name: 'sym-stats', description: 'What sym kept out of context this session' })
       await $.command.register({ name: 'sym-index', description: 'Rebuild the semantic index for this checkout now' })
@@ -247,6 +287,11 @@ export function register(on, options) {
     const content = skeleton + note
     return { result: { type: 'text', file: { filePath: path, content, numLines: content.split('\n').length, startLine: 1, totalLines: info.lines } } }
   }).catch(async ($, e, next) => next(e))
+
+  on('tool.call', { tool: 'mcp__sym__diag' }, async ($) => {
+    const lines = await $.store.get('sym.diag')
+    return { result: Array.isArray(lines) && lines.length ? lines.join('\n') : 'sym: no diagnostics recorded' }
+  })
 
   on('tool.call', { tool: /^mcp__sym__(map|ls|read|find|where)$/ }, async ($, e) => {
     const cwd = await $.session.cwd()

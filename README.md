@@ -66,6 +66,13 @@ service for it (Qwen3-Embedding-0.6B); any endpoint works. The plugin's
 `SYM_INDEX_DIR` in the environment) turns on the `where` tool and the
 `/sym-index` command; the index is rebuilt in the background per HEAD.
 
+**File summaries** (opt-in, `summaries: haiku` or `haiku-wait` in the plugin
+config, or `SYM_SUMMARIES` in the environment): one line per file of the repo
+map, written by Haiku on your own plan and cached per commit, so the map reads
+`src/lang.rs:  — maps extensions to languages …`. `haiku` writes them after the
+session starts (the next session on that commit has them); `haiku-wait` makes
+the first session wait (about two seconds for a small repo).
+
 **MCP** (any client): `{"command": "sym", "args": ["mcp"]}` exposes
 `sym_ls`, `sym_read`, `sym_map` over stdio.
 

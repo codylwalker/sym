@@ -44,7 +44,8 @@ file over 200 lines comes back as its skeleton (no turn wasted; set
 map arrives with your first message, and `map`, `ls`, `read`, `find` (and
 `where`, code by meaning, when an embeddings endpoint is configured) are
 tools. `/sym-stats` shows what was kept out of context; `/sym-index` rebuilds
-the semantic index. Older clients get the classic hint hook.
+the semantic index; `summaries: haiku` annotates every file of the map with one
+Haiku-written line. Older clients get the classic hint hook.
 
 ## Install
 
