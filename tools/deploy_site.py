@@ -56,7 +56,8 @@ def bench_bits() -> tuple[str, str]:
                 parts.append("<b>%s</b> agreed with plain on %d of %d tasks (partial %d, disagree %d)" % (
                     html.escape(arm), v.get("agree", 0), v.get("tasks", 0), v.get("partial", 0), v.get("disagree", 0)))
             if parts:
-                cert = " Answers, judged by %s against the plain arm's: %s." % (html.escape(c.get("judge_model", "haiku")), "; ".join(parts))
+                cert = " Answers, judged by %s against the plain arm's: %s.%s" % (
+                    html.escape(c.get("judge_model", "haiku")), "; ".join(parts), (" " + html.escape(c["note"])) if c.get("note") else "")
     table = ("<table><tr><th>task</th><th>arm</th><th>cost USD</th><th>input</th><th>cache read</th><th>turns</th></tr>%s</table>"
              "<p class=\"note\">%s on %s@%s, %d runs per cell, model %s, Claude Code %s. %s The headline above is the mod arm (the install on Claude Code 2.1.287+).%s Full file: <code>bench/results/%s.json</code>.</p>") % (
         "".join(rows), html.escape(j["stamp"]), html.escape(j["repo"]["url"]), html.escape(j["repo"]["ref"]),
