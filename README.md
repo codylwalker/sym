@@ -106,7 +106,10 @@ can pay (Stripe's "monetize your MCP server" pattern). See the site for the
 
 `bench/` runs a fixed task list with and without the plugin and reports the
 session cost with cache reads billed. The number on the site comes from there,
-losses included.
+losses included. `bench/certify.py` then has a small model judge whether each
+arm's answers agree with the plain arm's (agree / partial / disagree, with a
+reason per task), so "cheaper" is printed next to "and the same answers", not
+instead of it.
 
 ## License
 

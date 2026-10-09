@@ -56,3 +56,27 @@ prompt = "List the printer formats this repository supports and name the file an
 [[task]]
 id = "orient-tests"
 prompt = "How are integration tests structured in this repository? Name the test helper module, its main type, and three of the test files that use it. Keep the answer to structure, not content."
+
+# The "find" family (added 2026-10-09): the question names a symbol but NOT its
+# file, so the move is one definition lookup (sym find / sym read) and the
+# whole-file Read is not even available as a shortcut.
+
+[[task]]
+id = "find-colorspec"
+family = "find"
+prompt = "Where is `UserColorSpec` defined in this repository, and what does its FromStr implementation parse a string into? Name the file and quote the signature of from_str."
+
+[[task]]
+id = "find-visit"
+family = "find"
+prompt = "Find the definition of `WalkParallel::visit` in this repository: which file, what does it take, and what does it return? Quote the signature."
+
+[[task]]
+id = "find-binary"
+family = "find"
+prompt = "Where is the `BinaryDetection` type defined in this repository, and what are its variants or constructors? Name the file and line range."
+
+[[task]]
+id = "find-search-path"
+family = "find"
+prompt = "Find where `Searcher::search_path` is defined: which file, what it takes, what it returns, and which other Searcher method it delegates to. Quote the relevant lines."
