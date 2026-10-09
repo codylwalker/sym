@@ -1,3 +1,4 @@
+import { usdDelta, fmtUsd, turnLine, meterSummary } from '../hooks/meter.js'
 import { filesOf, withSummaries, summaryPrompt, cleanSummary } from '../hooks/summaries.js'
 import { expect, test } from 'claude-code/testing'
 
@@ -103,4 +104,22 @@ test('summaries: the map parses into files, merges one line per header, prompts 
   expect(merged).toContain('src/util.py:\n')
   expect(summaryPrompt('src/lib.rs', files[0].block)).toContain('File: src/lib.rs')
   expect(cleanSummary('"Parses CLI flags."\nmore')).toBe('Parses CLI flags')
+})
+
+
+test('meter: deltas never go negative, lines read in dollars, the summary names the dearest turn', async () => {
+  expect(Math.abs(usdDelta(0.10, 0.125) - 0.025) < 1e-9).toBe(true)
+  expect(usdDelta(0.10, 0.09)).toBe(0)
+  expect(usdDelta(0.10, undefined)).toBe(0)
+  expect(fmtUsd(0)).toBe('$0')
+  expect(fmtUsd(0.0042)).toBe('$0.0042')
+  expect(fmtUsd(0.125)).toBe('$0.125')
+  expect(fmtUsd(3.5)).toBe('$3.50')
+  expect(turnLine(0.012, 0.3, { percent: 41.6 })).toBe('$0.012 this turn · $0.300 so far · context 42%')
+  const series = [{ usd: 0.1, delta: 0.1 }, { usd: 0.35, delta: 0.25, context: { percent: 50, window: 200000 } }]
+  const s = meterSummary(series, 1200)
+  expect(s).toContain('$0.350 over 2 measured turns')
+  expect(s).toContain('dearest turn $0.250')
+  expect(s).toContain('context 50% of 200000')
+  expect(s).toContain('1200 tokens kept out')
 })

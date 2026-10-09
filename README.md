@@ -66,6 +66,12 @@ service for it (Qwen3-Embedding-0.6B); any endpoint works. The plugin's
 `SYM_INDEX_DIR` in the environment) turns on the `where` tool and the
 `/sym-index` command; the index is rebuilt in the background per HEAD.
 
+**The meter.** Every turn's line and `/sym-stats` read in dollars from the
+engine's own cost ledger (nothing is computed from a price table, nothing
+leaves the machine): what the turn cost, the session so far, the context
+percentage, and what sym kept out. The bench checks the meter against each
+session's reported cost and fails the run if they disagree by more than 1%.
+
 **File summaries** (opt-in, `summaries: haiku` or `haiku-wait` in the plugin
 config, or `SYM_SUMMARIES` in the environment): one line per file of the repo
 map, written by Haiku on your own plan and cached per commit, so the map reads

@@ -1,4 +1,5 @@
 import { filesOf, withSummaries, summaryPrompt, cleanSummary } from './summaries.js'
+import { usdDelta, turnLine, meterSummary } from './meter.js'
 // sym — the mod. Read the function, not the file.
 //
 // What it does, in the order a session meets it:
@@ -11,7 +12,8 @@ import { filesOf, withSummaries, summaryPrompt, cleanSummary } from './summaries
 //   tool.call(Read) answers a whole-file Read of a big source file with its
 //                   skeleton (read_mode=skeleton), or appends a note (hint),
 //                   or does nothing (off); ranged Reads always pass through
-//   turn.complete   prints what was kept out of context this turn
+//   session.measure samples the engine's cost ledger (the meter)
+//   turn.complete   prints what was kept out and what the turn cost
 //
 // Every shell call goes through the `sym` binary (cargo install sym-cli).
 // When it is missing, every hook passes the event on unchanged.
@@ -22,6 +24,8 @@ const SOURCE_EXT = /\.(rs|lua|py|pyi|ts|tsx|mts|cts|js|jsx|mjs|cjs|go|c|h|cpp|cc
 // hooks module lives for the session.
 let turn = { skeletons: 0, bytesKept: 0, symbolReads: 0 }
 let total = { skeletons: 0, bytesKept: 0, symbolReads: 0, turns: 0 }
+// The meter: the engine's own cost ledger, sampled at every session.measure.
+let meter = { lastUsd: 0, usd: 0, turnUsd: 0, series: [], context: null, sessionId: '' }
 let repoMap = ''
 let indexDir = ''
 let indexUrl = ''
@@ -313,7 +317,8 @@ export function register(on, options) {
   })
 
   on('command.run', { command: 'sym-stats' }, async () => {
-    return { text: 'sym: ' + total.skeletons + ' skeleton answers · ~' + tokens(total.bytesKept) + ' tokens kept out of context · ' + total.symbolReads + ' symbol reads · ' + total.turns + ' turns' }
+    const kept = 'sym: ' + total.skeletons + ' skeleton answers · ~' + tokens(total.bytesKept) + ' tokens kept out of context · ' + total.symbolReads + ' symbol reads · ' + total.turns + ' turns'
+    return { text: kept + '\n' + meterSummary(meter.series, tokens(total.bytesKept)) }
   })
 
   on('command.run', { command: 'sym-index' }, async ($) => {
@@ -329,6 +334,26 @@ export function register(on, options) {
     return { text: r.exitCode === 0 ? 'sym: index rebuilt at ' + indexDir : 'sym: index failed: ' + r.stderr }
   })
 
+  // The meter samples the engine's ledger after every turn; the series is
+  // stored per session so the bench can check it against the session's own
+  // reported cost. Watch-only: next(e) is passed through unchanged.
+  on('session.measure', async ($, e, next) => {
+    try {
+      const usd = e && e.cost && Number.isFinite(e.cost.usd) ? e.cost.usd : meter.lastUsd
+      const delta = usdDelta(meter.lastUsd, usd)
+      meter.lastUsd = usd
+      meter.usd = usd
+      meter.turnUsd += delta
+      meter.context = e && e.context ? { percent: e.context.percent, window: e.context.window, tokens: e.context.tokens } : meter.context
+      meter.series.push({ usd, delta, context: meter.context, at: Date.now() })
+      if (!meter.sessionId) meter.sessionId = String(await $.session.id())
+      if (meter.series.length % 1 === 0) await $.store.set('sym.meter.' + meter.sessionId, { usd, turns: meter.series.length, series: meter.series.slice(-200) })
+    } catch {
+      // the meter never costs the session
+    }
+    return next(e)
+  })
+
   on('turn.complete', async ($, e, next) => {
     const t = { ...turn }
     total.skeletons += t.skeletons
@@ -336,9 +361,16 @@ export function register(on, options) {
     total.symbolReads += t.symbolReads
     total.turns += 1
     turn = { skeletons: 0, bytesKept: 0, symbolReads: 0 }
+    const spent = meter.turnUsd
+    meter.turnUsd = 0
     const r = await next(e)
-    if (t.skeletons === 0 && t.symbolReads === 0) return r
-    const line = 'sym: ' + t.skeletons + ' skeleton' + (t.skeletons === 1 ? '' : 's') + ' · ~' + tokens(t.bytesKept) + ' tokens kept out · ' + t.symbolReads + ' symbol read' + (t.symbolReads === 1 ? '' : 's')
+    const bits = []
+    if (t.skeletons > 0 || t.symbolReads > 0) {
+      bits.push(t.skeletons + ' skeleton' + (t.skeletons === 1 ? '' : 's') + ' · ~' + tokens(t.bytesKept) + ' tokens kept out · ' + t.symbolReads + ' symbol read' + (t.symbolReads === 1 ? '' : 's'))
+    }
+    if (meter.series.length) bits.push(turnLine(spent, meter.usd, meter.context))
+    if (!bits.length) return r
+    const line = 'sym: ' + bits.join(' · ')
     return { ...r, text: ((r && r.text) ? r.text + '\n' : '') + line }
   })
 }

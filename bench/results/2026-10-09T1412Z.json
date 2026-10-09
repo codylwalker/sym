@@ -1,0 +1,50 @@
+{
+ "stamp": "2026-10-09T1412Z",
+ "repo": {
+  "url": "https://github.com/BurntSushi/ripgrep",
+  "ref": "14.1.1"
+ },
+ "model": "claude-sonnet-5",
+ "runs": 1,
+ "summary": {
+  "mod": {
+   "n": 1,
+   "cost_median": 0.1937742,
+   "cost_mean": 0.1937742,
+   "cache_read_median": 116671,
+   "input_median": 8,
+   "turns_median": 6,
+   "reads": 0,
+   "sym_calls": 4,
+   "skeletons": 0
+  },
+  "arms": {}
+ },
+ "rows": [
+  {
+   "task": "json-begin",
+   "arm": "mod",
+   "wall_s": 18.6,
+   "rc": 0,
+   "cost_usd": 0.1937742,
+   "turns": 6,
+   "input": 8,
+   "output": 774,
+   "cache_create": 40671,
+   "cache_read": 116671,
+   "session_id": "5a5a71eb-bc40-48ca-b77e-ed299581c2bf",
+   "answer": "`begin` (crates/printer/src/json.rs:775-790) calls `write_begin_message` (json.rs:672-681), which emits `jsont::Message::Begin(jsont::Begin { path })` \u2014 a single `path: Option<&Path>` field (crates/printer/src/jsont.rs:48-50).\n\n`finish` (json.rs:792-817) emits `jsont::Message::End(jsont::End { path, binary_offset, stats })` \u2014 three fields: `path: Option<&Path>`, `binary_offset: Option<u64>` (from `finish.binary_byte_offset()`), and `stats: Stats` (a clone of accumulated search stats) \u2014 struct defined at jsont.rs:65-69.",
+   "tools": {
+    "Read": 0,
+    "sym_bash": 0,
+    "sym_mcp": 4,
+    "other": 1,
+    "denied": 0,
+    "skeleton": 0
+   },
+   "meter_usd": 0.1937742,
+   "meter_drift": 0.0,
+   "run": 0
+  }
+ ]
+}

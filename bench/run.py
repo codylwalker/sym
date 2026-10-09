@@ -149,7 +149,34 @@ def run_one(task: dict, arm: str, cwd: str, model: str) -> dict:
         "answer": (j.get("result") or "")[:2000],
     })
     out["tools"] = tool_mix(j.get("session_id"))
+    # The mod's meter (session.measure → the plugin store) must agree with the
+    # session's own reported cost; a meter that drifts would be a lie on /sym-stats.
+    if arm.startswith("mod"):
+        m = meter_record(j.get("session_id"))
+        out["meter_usd"] = m
+        if m is not None and out.get("cost_usd"):
+            drift = abs(m - out["cost_usd"]) / out["cost_usd"]
+            out["meter_drift"] = round(drift, 4)
+            if drift > 0.01:
+                raise SystemExit("bench: the meter (%.4f) disagrees with the session cost (%.4f) by %.1f%%" % (m, out["cost_usd"], drift * 100))
     return out
+
+
+def meter_record(session_id: str | None) -> float | None:
+    """The mod's meter total for a session, from the plugin store on disk
+    (`~/.claude/plugins/store/sym_*.json`, key `sym.meter.<session id>`)."""
+    if not session_id:
+        return None
+    import glob
+    for path in glob.glob(os.path.expanduser("~/.claude/plugins/store/sym_*.json")):
+        try:
+            d = json.load(open(path, encoding="utf-8"))
+        except (ValueError, OSError):
+            continue
+        rec = d.get("sym.meter." + session_id)
+        if isinstance(rec, dict) and isinstance(rec.get("usd"), (int, float)):
+            return float(rec["usd"])
+    return None
 
 
 def tool_mix(session_id: str | None) -> dict:
