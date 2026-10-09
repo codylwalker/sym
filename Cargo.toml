@@ -10,7 +10,7 @@ license-file = "LICENSE.md"
 readme = "README.md"
 keywords = ["tree-sitter", "tokens", "mcp", "agents", "code-reading"]
 categories = ["command-line-utilities", "development-tools"]
-exclude = ["bench/", "site/", "deploy/", "plugin/", "tools/", ".claude-plugin/"]
+exclude = ["bench/", "site/", "deploy/", "plugin/", "plugin-lens/", "tools/", ".claude-plugin/", "docs/listing.md"]
 
 [lib]
 name = "sym"
