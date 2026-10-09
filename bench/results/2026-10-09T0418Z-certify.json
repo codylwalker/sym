@@ -1,0 +1,252 @@
+{
+ "stamp": "2026-10-09T0418Z",
+ "judge_model": "haiku",
+ "reference": "plain (median-cost run per task)",
+ "summary": {
+  "mod": {
+   "tasks": 12,
+   "agree": 10,
+   "partial": 1,
+   "disagree": 1,
+   "unclear": 0
+  },
+  "mod-nomap": {
+   "tasks": 12,
+   "agree": 8,
+   "partial": 3,
+   "disagree": 1,
+   "unclear": 0
+  },
+  "mod-sum": {
+   "tasks": 12,
+   "agree": 10,
+   "partial": 1,
+   "disagree": 1,
+   "unclear": 0
+  }
+ },
+ "verdicts": {
+  "mod": {
+   "defs-colors": {
+    "verdict": "agree",
+    "reason": "agree: both give the same `{type}:{attribute}:{value}` format and the same `update` flow, pushing a parsed `usercolorspe",
+    "plain_session": "d4d8d520-c5a9-4783-bee4-86997a63baa8",
+    "session": "75af4fcf-15c0-4b2e-b779-5adc4cc86be1"
+   },
+   "defs-glob": {
+    "verdict": "agree",
+    "reason": "same code, same `convert::string` conversion, same push onto `args.globs`; the second adds only the `vec<string>` type.",
+    "plain_session": "c8aac091-7173-44d9-a1f7-381d87322efa",
+    "session": "9183de10-8c47-4664-8eb8-5cd2bbd4161e"
+   },
+   "defs-sort": {
+    "verdict": "agree",
+    "reason": "both list the same five values (none, path, modified, accessed, created) with the same mappings, the same bail on unknown values, and reverse always false.",
+    "plain_session": "e46410e0-380c-4d49-8d48-2271eb5f5c8a",
+    "session": "11d0195d-f2f4-454a-b6f3-e633b326c42e"
+   },
+   "gitignore-matched": {
+    "verdict": "agree",
+    "reason": "both give the same reverse-order last-match-wins logic in `matched_stripped`, the is_only_dir/is_dir skip, whitelist vs ignore vs none, and parent walking with `is_dir=true`.",
+    "plain_session": "63239971-a6a0-49db-9e8f-137a0bd37d84",
+    "session": "964362b4-0a3d-40f5-beb4-a611d1ca497b"
+   },
+   "glue-fill": {
+    "verdict": "agree",
+    "reason": "both describe the same four ok(false) paths (eof, binary quit, binary callback rejection, stale leftover buffer) and the same `while self.fill()? && ...` short-circuit in `run`; only line-range granularity differs.",
+    "plain_session": "2c15c4c5-99f8-4971-a861-b8855eb40dbc",
+    "session": "7e553d5d-7936-404e-9b84-4c74943ebf31"
+   },
+   "json-begin": {
+    "verdict": "agree",
+    "reason": "both name begin with only `path` and end with `path`, `binary_offset`, and `stats`; the extra begin_printed gating isn't in the reference.",
+    "plain_session": "77424411-9131-4288-a9b9-ba007b8df695",
+    "session": "1e420e1f-6266-4bb6-be36-4222f92e23f8"
+   },
+   "orient-flag-arch": {
+    "verdict": "agree",
+    "reason": "both name the same three files (defs.rs, lowargs.rs, hiargs.rs) and the same add-a-flag steps; the second omits config.rs, which the question did not ask for.",
+    "plain_session": "c8dbc81e-0258-4cb5-9e66-24f8f822cd77",
+    "session": "17ce8b71-8c09-4099-9b49-178978fed47b"
+   },
+   "orient-printer": {
+    "verdict": "disagree",
+    "reason": "the second answer lists four formats (adds `path.rs`'s `pathprinter`) and names `grep-searcher`/`grep-matcher` as the shared dependency, where the first names `crates/printer/src/util.rs`.",
+    "plain_session": "64e8b1cb-b5e5-4e4c-90ee-89f7c21e83bd",
+    "session": "6aa153e8-cc47-4738-9f9f-53d5bbce4d77"
+   },
+   "orient-tests": {
+    "verdict": "partial",
+    "reason": "both name `tests/util.rs`, `testcommand`/`dir`, and `tests/tests.rs` as the crate root, but the second omits the `rgtest!` macro and the closure-based test pattern.",
+    "plain_session": "2c32a5bf-489a-4619-b74a-7a42ea6c0021",
+    "session": "c7c21840-255e-4bbe-9323-a3e216eab9e4"
+   },
+   "orient-walker": {
+    "verdict": "agree",
+    "reason": "agree: both name the `ignore` crate, `crates/ignore/src/walk.rs`, `walkbuilder`, and the same builder methods, with `bui",
+    "plain_session": "a4c76c35-85ad-494d-b3b9-6ecdf220c7c4",
+    "session": "af9d072a-bcae-4ca4-b989-a3acf652ffac"
+   },
+   "standard-sep": {
+    "verdict": "agree",
+    "reason": "agree: both name `write_context_separator` (standard.rs:1485-1491), the `context_break` trigger (877-883), and the `sepa",
+    "plain_session": "76a4a1e7-d221-4869-aa8e-49c587a2ac32",
+    "session": "7d220a79-a675-4f0e-bbac-cb633db57f82"
+   },
+   "walk-skip": {
+    "verdict": "agree",
+    "reason": "same five checks in the same order, with matching line citations, and both note the final `ok(false)` at 965. only the wording of the stdout and ordering explanations differs.",
+    "plain_session": "b5540333-5e48-4740-b850-8bf5b82cd6fb",
+    "session": "d29bd1ca-37c9-4f7f-806e-7e35b9da23f4"
+   }
+  },
+  "mod-nomap": {
+   "defs-colors": {
+    "verdict": "partial",
+    "reason": "both give the same `{type}:{attribute}:{value}` format and the same `update` code, but the second omits how `usercolorspec::from_str` splits the string into outtype, spectype and color/style.",
+    "plain_session": "d4d8d520-c5a9-4783-bee4-86997a63baa8",
+    "session": "f3e147e0-402b-4797-8760-80abfd52cd78"
+   },
+   "defs-glob": {
+    "verdict": "agree",
+    "reason": "both give the same `update` body (`convert::string(v.unwrap_value())`, then `args.globs.push`) and the same line range.",
+    "plain_session": "c8aac091-7173-44d9-a1f7-381d87322efa",
+    "session": "64c0ec52-6e3a-49ea-8d2c-4cd82f717db3"
+   },
+   "defs-sort": {
+    "verdict": "agree",
+    "reason": "same values, same `sortmodekind` mappings, same `none` early return and `bail!` fallback; the extra `--sortr` and default notes don't conflict.",
+    "plain_session": "e46410e0-380c-4d49-8d48-2271eb5f5c8a",
+    "session": "72795415-bb3f-473c-b38e-e34f8760b81e"
+   },
+   "gitignore-matched": {
+    "verdict": "agree",
+    "reason": "both give the same core: `matched_stripped` reverse-scans matches, last matching glob decides whitelist vs ignore, else none; parent-walk adds ancestors with `is_dir=true`. second is truncated before the parent-walk return.",
+    "plain_session": "63239971-a6a0-49db-9e8f-137a0bd37d84",
+    "session": "9f7981d4-ac8d-43c0-8be2-6516710bd84c"
+   },
+   "glue-fill": {
+    "verdict": "partial",
+    "reason": "partial: both cite the same lines and the same `&&` short-circuit, but the second never explains the `should_binary_quit",
+    "plain_session": "2c15c4c5-99f8-4971-a861-b8855eb40dbc",
+    "session": "02c01c9a-5d0d-4369-938f-01b0c1a65cff"
+   },
+   "json-begin": {
+    "verdict": "agree",
+    "reason": "both give the same begin{path} and end{path, binary_offset, stats} fields with the same line citations; the extra \"resets per-search state\" claim is not in the reference.",
+    "plain_session": "77424411-9131-4288-a9b9-ba007b8df695",
+    "session": "1cf15794-45b1-44ad-b244-99cebbd1ee80"
+   },
+   "orient-flag-arch": {
+    "verdict": "agree",
+    "reason": "same files, the lowargs\u2192hiargs conversion, and the three-file add procedure; it omits the reference's config.rs note, which the question didn't ask for.",
+    "plain_session": "c8dbc81e-0258-4cb5-9e66-24f8f822cd77",
+    "session": "63c93d73-4734-4958-9f91-e3cc8a00d99d"
+   },
+   "orient-printer": {
+    "verdict": "disagree",
+    "reason": "disagree: the second answer lists four formats (adds `pathprinter` in `path.rs`) and names `grep-searcher` as the shared",
+    "plain_session": "64e8b1cb-b5e5-4e4c-90ee-89f7c21e83bd",
+    "session": "77bd4635-c2f9-4209-83c3-92b2437bcb16"
+   },
+   "orient-tests": {
+    "verdict": "partial",
+    "reason": "both name `tests/util.rs`, `dir` and `testcommand`, and overlapping test files, but the second makes `dir` the main type where the reference says `testcommand`.",
+    "plain_session": "2c32a5bf-489a-4619-b74a-7a42ea6c0021",
+    "session": "114d51b7-e980-4bd4-b08c-ea1b509e12b8"
+   },
+   "orient-walker": {
+    "verdict": "agree",
+    "reason": "same crate, file, struct line, and the same full list of `walkbuilder` methods; the second only omits what `build` returns, which the question didn't ask for.",
+    "plain_session": "a4c76c35-85ad-494d-b3b9-6ecdf220c7c4",
+    "session": "ea950c45-237d-41fe-88e7-120052be0036"
+   },
+   "standard-sep": {
+    "verdict": "agree",
+    "reason": "same method (`write_context_separator`, 1485-1491), same `context_break` trigger (877-883), and same `separator_context` guard; only the default-value detail is omitted.",
+    "plain_session": "76a4a1e7-d221-4869-aa8e-49c587a2ac32",
+    "session": "db9ac1a9-896c-49ab-b24e-0e2c7dcf2633"
+   },
+   "walk-skip": {
+    "verdict": "agree",
+    "reason": "both list the same five checks in the same order, with matching line numbers, and both end with `ok(false)` at line 965.",
+    "plain_session": "b5540333-5e48-4740-b850-8bf5b82cd6fb",
+    "session": "7ad6a44e-826b-4915-bc7f-58ffa8fc6535"
+   }
+  },
+  "mod-sum": {
+   "defs-colors": {
+    "verdict": "agree",
+    "reason": "both give the same `{type}:{attribute}:{value}` format, the same option lists, and the same path: `update` \u2192 `usercolorspec::from_str` \u2192 `args.colors` \u2192 `colorspecs::new` merge.",
+    "plain_session": "d4d8d520-c5a9-4783-bee4-86997a63baa8",
+    "session": "69b7ab8c-c3bf-4554-b767-a835f501cbee"
+   },
+   "defs-glob": {
+    "verdict": "agree",
+    "reason": "both give the same `update` body (`convert::string` then `args.globs.push`) and the same `globs: vec<string>` target; the second just omits the explanatory gloss.",
+    "plain_session": "c8aac091-7173-44d9-a1f7-381d87322efa",
+    "session": "8aaca107-9502-4612-b2fd-9ad4bf7b91ef"
+   },
+   "defs-sort": {
+    "verdict": "agree",
+    "reason": "both list the same five values (none, path, modified, accessed, created), the same sortmodekind mappings, reverse:false, and the same bail on unknown values.",
+    "plain_session": "e46410e0-380c-4d49-8d48-2271eb5f5c8a",
+    "session": "15acc930-6386-4b96-8888-d1640ec7b652"
+   },
+   "gitignore-matched": {
+    "verdict": "agree",
+    "reason": "both give the same reverse-order last-match-wins logic, dir-only skip, ignore/whitelist/none outcomes, and parent-walk with `is_dir=true`; second adds an empty-matcher check the reference omits.",
+    "plain_session": "63239971-a6a0-49db-9e8f-137a0bd37d84",
+    "session": "1d779109-f87c-458b-b8c0-6211ccd4c95e"
+   },
+   "glue-fill": {
+    "verdict": "agree",
+    "reason": "both describe the same four ok(false) paths (eof, binary quit, binary callback rejecting, stale buffer), the same `while self.fill()? && \u2026` short-circuit, and the same line ranges.",
+    "plain_session": "2c15c4c5-99f8-4971-a861-b8855eb40dbc",
+    "session": "b513fae1-d4c9-4d9b-9778-da8a02f4767c"
+   },
+   "json-begin": {
+    "verdict": "agree",
+    "reason": "both name begin carrying only `path` and end carrying `path`, `binary_offset` and `stats`, with the same functions; only line ranges differ slightly.",
+    "plain_session": "77424411-9131-4288-a9b9-ba007b8df695",
+    "session": "eff3506e-ea43-4123-8506-aa6e24f8888c"
+   },
+   "orient-flag-arch": {
+    "verdict": "partial",
+    "reason": "both name the same files and conversion point (`hiargs.rs`), but the second answer is truncated before the requested three-file \"adding a new flag\" section.",
+    "plain_session": "c8dbc81e-0258-4cb5-9e66-24f8f822cd77",
+    "session": "ee6c24b5-00ea-4618-85a6-6cd038486372"
+   },
+   "orient-printer": {
+    "verdict": "disagree",
+    "reason": "the second answer matches the three formats and util.rs, but adds a fourth (pathprinter in path.rs) that contradicts the reference's \"three formats\" list.",
+    "plain_session": "64e8b1cb-b5e5-4e4c-90ee-89f7c21e83bd",
+    "session": "96ba6bab-6066-478d-bfaf-787b7bfc8063"
+   },
+   "orient-tests": {
+    "verdict": "agree",
+    "reason": "both name `tests/util.rs`, `testcommand` with `dir`, and valid test files; the second omits the reference's `rgtest!` macro detail.",
+    "plain_session": "2c32a5bf-489a-4619-b74a-7a42ea6c0021",
+    "session": "725aa6ac-b61e-4970-bfea-f5599af870f0"
+   },
+   "orient-walker": {
+    "verdict": "agree",
+    "reason": "same crate, file, struct/impl lines, and the identical `walkbuilder` method list; both also name `walkparallel`'s `run`/`visit`. the extra stack/worker detail is unverified but doesn't contradict.",
+    "plain_session": "a4c76c35-85ad-494d-b3b9-6ecdf220c7c4",
+    "session": "9a6901b0-06da-47cf-b625-c46ae4689f29"
+   },
+   "standard-sep": {
+    "verdict": "agree",
+    "reason": "same method (`write_context_separator`, lines 1485-1491), same trigger (`sink::context_break`, lines 877-883), and same `separator_context` some-check.",
+    "plain_session": "76a4a1e7-d221-4869-aa8e-49c587a2ac32",
+    "session": "a348bf3f-c839-48a4-9d68-621fbc2f6476"
+   },
+   "walk-skip": {
+    "verdict": "agree",
+    "reason": "same five checks in the same order, with matching line citations (933\u2013935, 945, 948\u2013952, 953\u2013959, 960\u2013964, 965) and the same ordering rationale.",
+    "plain_session": "b5540333-5e48-4740-b850-8bf5b82cd6fb",
+    "session": "a63e4f54-72dc-4e17-acdf-319bff2a297b"
+   }
+  }
+ }
+}

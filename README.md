@@ -109,7 +109,9 @@ session cost with cache reads billed. The number on the site comes from there,
 losses included. `bench/certify.py` then has a small model judge whether each
 arm's answers agree with the plain arm's (agree / partial / disagree, with a
 reason per task), so "cheaper" is printed next to "and the same answers", not
-instead of it.
+instead of it. An ablation run (the mod without its repo map, and with Haiku
+file summaries on the map) showed the map with the first message is where the
+saving comes from; summaries cost more per turn than they save on these tasks.
 
 ## License
 

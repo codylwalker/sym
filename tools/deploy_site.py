@@ -58,10 +58,30 @@ def bench_bits() -> tuple[str, str]:
             if parts:
                 cert = " Answers, judged by %s against the plain arm's: %s.%s" % (
                     html.escape(c.get("judge_model", "haiku")), "; ".join(parts), (" " + html.escape(c["note"])) if c.get("note") else "")
+    # The ablation (a separate full run): what the map and the summaries are worth.
+    abl = ""
+    apath = os.path.join(ROOT, "bench", "results", "latest-ablation.json")
+    if os.path.exists(apath):
+        a = json.load(open(apath, encoding="utf-8"))
+        arms_a = (a.get("summary") or {}).get("arms") or {}
+        bits = []
+        for arm, label in (("mod", "the mod"), ("mod-nomap", "the mod without its repo map"), ("mod-sum", "the mod with Haiku file summaries on the map")):
+            v = arms_a.get(arm)
+            if v and v.get("headline_pct") is not None:
+                bits.append("%s %+.1f%% (cheaper on %s of %s)" % (label, v["headline_pct"], v.get("tasks_cheaper", "?"), v.get("tasks_total", "?")))
+        cpath2 = os.path.join(ROOT, "bench", "results", a["stamp"] + "-certify.json")
+        if os.path.exists(cpath2):
+            c2 = json.load(open(cpath2, encoding="utf-8"))
+            agree = ["%s %d/%d" % (html.escape(arm), v.get("agree", 0), v.get("tasks", 0)) for arm, v in (c2.get("summary") or {}).items()]
+            if agree:
+                bits.append("answers agreed with plain (full-length, %s judge): %s" % (html.escape(c2.get("judge_model", "haiku")), ", ".join(agree)))
+        if bits:
+            abl = " Ablation (run %s, same tasks, %d runs per cell): %s. The repo map with the first message is where the saving comes from; summaries cost more tokens per turn than they save here, so they stay opt-in." % (
+                html.escape(a["stamp"]), a.get("runs", 0), "; ".join(bits))
     table = ("<table><tr><th>task</th><th>arm</th><th>cost USD</th><th>input</th><th>cache read</th><th>turns</th></tr>%s</table>"
-             "<p class=\"note\">%s on %s@%s, %d runs per cell, model %s, Claude Code %s. %s The headline above is the mod arm (the install on Claude Code 2.1.287+).%s Full file: <code>bench/results/%s.json</code>.</p>") % (
+             "<p class=\"note\">%s on %s@%s, %d runs per cell, model %s, Claude Code %s. %s The headline above is the mod arm (the install on Claude Code 2.1.287+).%s%s Full file: <code>bench/results/%s.json</code>.</p>") % (
         "".join(rows), html.escape(j["stamp"]), html.escape(j["repo"]["url"]), html.escape(j["repo"]["ref"]),
-        j.get("runs", 0), html.escape(j.get("model", "")), html.escape(j.get("claude_code", "2.1.294")), per_arm, cert, html.escape(j["stamp"]))
+        j.get("runs", 0), html.escape(j.get("model", "")), html.escape(j.get("claude_code", "2.1.294")), per_arm, cert, abl, html.escape(j["stamp"]))
     _ = md
     return cost, table
 
