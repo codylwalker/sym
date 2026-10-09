@@ -42,16 +42,6 @@ flag, diagnostics. $0.005 a call; MCP tool score_text. The sealed Reward
 Integrity audit of a grader or RL environment stays at api.stardata.foundation
 until it moves here.
 
-## starbox shot — a rendered, reproducible scene of a falling-sand world
-POST https://api.s2ar.dev/v1/starbox/shot {scene, seed, steps, census}: the
-PNG (base64), the material census and its sha256 (the determinism witness:
-the same scene, seed and steps give the same census on any box; the PNG's
-bytes vary run to run) and the wall time (about 2 s warm). GET
-/v1/starbox/scenes lists the 53 scenes. MCP tool starbox_shot returns the
-image. One box, one shot at a time; a busy box says retry and charges nothing.
-Price not final ($0.05 a shot while the spike runs). The engine never leaves
-the box: only pixels and JSON do.
-
 ## Paying as an agent
 Every metered endpoint answers 402 with the rails: Authorization: Bearer <key>
 (credits), X-PAYMENT (x402, USDC on Base), Authorization: Payment (Stripe
