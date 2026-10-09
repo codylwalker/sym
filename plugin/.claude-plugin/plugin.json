@@ -56,6 +56,12 @@
       "title": "Embeddings endpoint",
       "description": "An OpenAI-compatible base URL whose /v1/embeddings embeds code (e.g. http://127.0.0.1:8440). Empty disables the semantic `where` tool."
     },
+    "summaries": {
+      "type": "string",
+      "title": "File summaries",
+      "description": "off (default) or haiku: one line per file of the repo map, written by Haiku on your plan, cached per commit.",
+      "default": "off"
+    },
     "index_model": {
       "type": "string",
       "title": "Embedding model",

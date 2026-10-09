@@ -1,3 +1,4 @@
+import { filesOf, withSummaries, summaryPrompt, cleanSummary } from './summaries.js'
 // sym — the mod. Read the function, not the file.
 //
 // What it does, in the order a session meets it:
@@ -26,6 +27,7 @@ let indexDir = ''
 let indexUrl = ''
 let indexModel = ''
 let indexDirOverride = ''
+let summariesMode = ''
 let envResolved = false
 
 // The plugin config sets the index URL and model for an installed plugin; the
@@ -37,6 +39,7 @@ async function resolveEnv($) {
   indexUrl = indexUrl || (await $.env.get('SYM_INDEX_URL')) || ''
   indexModel = indexModel || (await $.env.get('SYM_INDEX_MODEL')) || ''
   indexDirOverride = (await $.env.get('SYM_INDEX_DIR')) || ''
+  summariesMode = summariesMode || (await $.env.get('SYM_SUMMARIES')) || 'off'
 }
 
 function tokens(bytes) {
@@ -63,6 +66,28 @@ async function indexReady($, dir) {
   }
 }
 
+// One short completion per file of the map, eight at a time, stored as
+// { file: summary }. Each answer is the plan's own spend (haiku), so it is
+// opt-in and capped at forty files.
+async function summarize($, mapText, sumKey) {
+  const files = filesOf(mapText).slice(0, 40)
+  const out = {}
+  for (let i = 0; i < files.length; i += 8) {
+    const batch = files.slice(i, i + 8)
+    const answers = await Promise.all(batch.map(async (f) => {
+      try {
+        const r = await $.model.complete({ model: 'haiku', prompt: summaryPrompt(f.file, f.block) })
+        return r && r.isAnswered ? cleanSummary(r.text) : ''
+      } catch {
+        return ''
+      }
+    }))
+    batch.forEach((f, j) => { if (answers[j]) out[f.file] = answers[j] })
+  }
+  if (Object.keys(out).length) await $.store.set(sumKey, out)
+  return out
+}
+
 async function gitHead($, cwd) {
   try {
     const r = await $.process.run(['git', 'rev-parse', 'HEAD'], { cwd })
@@ -81,6 +106,7 @@ export function register(on, options) {
   // and the bench, and is resolved once the session starts.
   indexUrl = (options && options.index_url) || ''
   indexModel = (options && options.index_model) || ''
+  summariesMode = (options && options.summaries) || ''
 
   on('session.start', async ($, e, next) => {
     const cwd = await $.session.cwd()
@@ -95,6 +121,18 @@ export function register(on, options) {
       const r = await symRun($, ['map', cwd, '--budget', String(mapBudget)], cwd)
       repoMap = r.exitCode === 0 ? r.stdout : ''
       if (repoMap) await $.store.set(key, repoMap)
+    }
+    // File summaries (opt-in): one haiku line per file, cached per HEAD, and
+    // computed AFTER this hook returns so the session never waits on them;
+    // the first session gets the plain map, later ones the annotated one.
+    if (summariesMode === 'haiku' && repoMap) {
+      const sumKey = key + ':summaries'
+      const have = await $.store.get(sumKey)
+      if (have && typeof have === 'object') {
+        repoMap = withSummaries(repoMap, have)
+      } else {
+        summarize($, repoMap, sumKey).catch(() => {})
+      }
     }
     // Tools for Claude. Each handler shells to sym and returns its text.
     await $.tool.register({

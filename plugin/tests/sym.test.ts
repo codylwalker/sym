@@ -1,3 +1,4 @@
+import { filesOf, withSummaries, summaryPrompt, cleanSummary } from '../hooks/summaries.js'
 import { expect, test } from 'claude-code/testing'
 
 // A fake `sym` binary: answers ls --json for a big and a small file, ls --est
@@ -89,4 +90,17 @@ test('SYM_INDEX_URL and SYM_INDEX_DIR wire the where tool without plugin config'
   const call = seen.find((a) => a[0] === 'sym' && a[1] === 'where')!
   expect(call.join(' ')).toContain('--index /idx')
   expect(call.join(' ')).toContain('--embed-url http://embed:8440')
+})
+
+
+test('summaries: the map parses into files, merges one line per header, prompts stay short', async () => {
+  const map = 'src/lib.rs:\n  pub fn alpha()\n  pub struct Beta\nsrc/util.py:\n  def gamma():\n'
+  const files = filesOf(map)
+  expect(files.map((f) => f.file)).toEqual(['src/lib.rs', 'src/util.py'])
+  expect(files[0].block).toBe('pub fn alpha()\npub struct Beta')
+  const merged = withSummaries(map, { 'src/lib.rs': 'the core types' })
+  expect(merged).toContain('src/lib.rs:  — the core types')
+  expect(merged).toContain('src/util.py:\n')
+  expect(summaryPrompt('src/lib.rs', files[0].block)).toContain('File: src/lib.rs')
+  expect(cleanSummary('"Parses CLI flags."\nmore')).toBe('Parses CLI flags')
 })
