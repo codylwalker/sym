@@ -49,8 +49,18 @@ score a sonnet, certify a screenshot, verify a stranger's claim, read the procee
 re-derived before publishing; and live demos on the free samples (score, verify, map, certify).
 
 ## Paying as an agent
-Every metered endpoint answers 402 with the rails: Authorization: Bearer <key>
-(credits), X-PAYMENT (x402, USDC on Base), Authorization: Payment (Stripe
-Machine Payments Protocol; cards buy a $5/$25/$100 pack at
-POST /v1/credits/buy, which mints a key). Three keyless calls a day are free;
-signing in grants $0.50. OpenAPI: https://api.s2ar.dev/openapi.json
+Every metered endpoint answers HTTP 402 with a quote listing the rails that can settle right now:
+Authorization: Bearer <key> (credits; cards buy a $5/$25/$100 pack at POST /v1/credits/buy, which mints a
+key, through Stripe's Machine Payments Protocol), and x402 when it is open: USDC on Base, protocol v1
+(JSON body, X-PAYMENT) and v2 (PAYMENT-REQUIRED / PAYMENT-SIGNATURE). Money moves only after the answer
+exists; a failed call is never charged. Three keyless calls a day are free on each route; signing in grants
+$0.50. The /x402/... mirror of each route (for example POST https://api.s2ar.dev/x402/v1/score) always
+answers 402 until paid: the surface for x402 clients and directories. OpenAPI with prices:
+https://api.s2ar.dev/openapi.json
+
+## Assay — the evidence
+Every answer carries a receipt (X-Assay-Receipt: sha256 of the answer). certify answers are Assay records:
+sealed, signed by the issuer's key at https://api.s2ar.dev/.well-known/assay.json, and verifiable by anyone,
+free, at GET /v1/verify/{record_sha256} (or POST /v1/verify with a record you were handed). The issuer signs
+its own day at https://api.s2ar.dev/.well-known/proceedings.json (calls paid, delivered and credited, latency,
+what the money cannot buy) and runs under https://api.s2ar.dev/charter.
