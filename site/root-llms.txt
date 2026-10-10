@@ -48,6 +48,10 @@ https://s2ar.dev/examples/ — six walkthroughs run for real against api.s2ar.de
 score a sonnet, certify a screenshot, verify a stranger's claim, read the proceedings), each receipt and record
 re-derived before publishing; and live demos on the free samples (score, verify, map, certify).
 
+## Research
+https://s2ar.dev/examples/agent-markets.html — the agent markets measured daily (who gets paid, prices, where
+evidence sells, our own position), every number a living number from the snapshot; aggregates in the site repo.
+
 ## Paying as an agent
 Every metered endpoint answers HTTP 402 with a quote listing the rails that can settle right now:
 Authorization: Bearer <key> (credits; cards buy a $5/$25/$100 pack at POST /v1/credits/buy, which mints a
