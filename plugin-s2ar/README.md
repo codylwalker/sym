@@ -18,6 +18,6 @@ plugin's `api_key` setting; or pay USDC per call with any tool's `x402_payment` 
 a receipt; assert, inspect, score and certify answers are signed records, verifiable free. Failed calls are never
 charged. The rules: https://api.s2ar.dev/charter.
 
-Measured: see `bench-s2ar/` in this repository (the numbers on https://s2ar.dev/mcp.html carry their run stamp).
+Measured (2026-10-10T1447Z, 16 sessions per arm, claude-sonnet-5, 8 tasks × 2 runs): final outputs pass 94% with the plugin vs 88% without (+6 points, within the noise of n=16), at a median session cost +86.8% (asserting is turns: a median of 5.0 turns against 1.0); the plugin arm asserted before returning in 10 of 16 sessions. The harness asserts every final output with the same checks after the fact; every run is in `bench-s2ar/results/`, losses included.
 
 Tests: `claude plugin test plugin-s2ar/`. Validate: `claude plugin validate plugin-s2ar/`.

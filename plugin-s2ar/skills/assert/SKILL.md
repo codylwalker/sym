@@ -15,12 +15,13 @@ The text you send is never kept; the record holds its hash.
 | the task | rubric or checks |
 |---|---|
 | "answer as JSON matching this schema" | `rubric: "api-response"`, `schema: <the schema>` |
-| the answer quotes a document you were given | `rubric: "quotes-source"`, `source: <the document>` |
+| the answer quotes a document you were given | `rubric: "quotes-source"`, `source: <the document>`; for a JSON answer pass the object as `json` — its `quote` field is the quotation (another field name: `quote_path`) |
 | the answer must cite | `rubric: "cited-answer"` (+ `domains: [...]` when the sources are known) |
 | no hedging allowed | `rubric: "no-hedging"` |
 | anything else | `checks: [{"check": "required_terms", "terms": [...]}, {"check": "length", "unit": "words", "max": 200}, …]` — `GET /v1/assert/checks` lists the fourteen kinds |
 
-Rubrics and checks combine: `rubric` plus `checks` runs both.
+Rubrics and checks combine: `rubric` plus `checks` runs both. Send a JSON answer as `json` (the object), not
+as `text`, so the schema check reads it and only the quotation field is read as a quotation.
 
 ## Reading the answer
 

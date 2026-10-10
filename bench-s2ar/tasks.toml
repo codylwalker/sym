@@ -1,0 +1,60 @@
+# The s2ar plugin bench: eight tasks that each hand the agent a short SOURCE (our own published text) and ask
+# for a JSON answer matching a SCHEMA, with one verbatim quotation and the source URL. The harness asserts
+# every final output with the same checks afterwards (api-response + quotes-source + cited-answer), so the
+# number is "how often does the final output pass, and what did the session cost", per arm.
+
+[[task]]
+id = "charter-refund"
+url = "https://api.s2ar.dev/charter"
+schema = '{"type":"object","required":["summary","quote","source_url"],"properties":{"summary":{"type":"string","maxLength":240},"quote":{"type":"string"},"source_url":{"type":"string"}}}'
+source = """A paid call that is not delivered is credited automatically and counted in that day's proceedings as credited_not_delivered. Not delivered means: no answer, an error answer, or an Assay record that cannot be verified within the settlement window. No form, no appeal needed."""
+prompt = "Summarise the refund rule below in one sentence."
+
+[[task]]
+id = "charter-keep"
+url = "https://api.s2ar.dev/charter"
+schema = '{"type":"object","required":["summary","quote","source_url"],"properties":{"summary":{"type":"string","maxLength":240},"quote":{"type":"string"},"source_url":{"type":"string"}}}'
+source = """Nothing about a buyer is collected, kept or brokered: no payer address beyond the settlement the chain already holds, no per-payer history, no IP or user agent, no key-to-wallet join, no repeat buyer flag. distinct_payers in the proceedings is a count from salted hashes whose salt is discarded."""
+prompt = "State what is kept about a buyer, in one sentence."
+
+[[task]]
+id = "charter-directories"
+url = "https://api.s2ar.dev/charter"
+schema = '{"type":"object","required":["summary","quote","source_url","rule_number"],"properties":{"summary":{"type":"string","maxLength":240},"quote":{"type":"string"},"source_url":{"type":"string"},"rule_number":{"type":"integer","minimum":1,"maximum":9}}}'
+source = """6. Directories. We list where agents look (the x402 Bazaar, Agent402, the manifest at /.well-known/x402) and we never buy our way up: we do not meet a directory's traffic or payer threshold with our own wallets. Our own settlements exist only to list a route or to test the rail, and the proceedings count them as the operator's, not as buyers."""
+prompt = "What does the directories rule forbid, and which rule number is it?"
+
+[[task]]
+id = "verse-gates"
+url = "https://s2ar.dev/examples/verse-certification.html"
+schema = '{"type":"object","required":["summary","quote","source_url","gates"],"properties":{"summary":{"type":"string","maxLength":300},"quote":{"type":"string"},"source_url":{"type":"string"},"gates":{"type":"array","items":{"type":"string"},"minItems":3}}}'
+source = """accepted now requires every gate to pass: an exact line count for a fixed form, a content floor (a distinct-word ratio, no duplicate line, a minimum size for the Oulipo forms), no credit for identical end words, a floor under every dimension, banned and required words as hard gates, and the form's threshold on the composite as before."""
+prompt = "List the gates a poem must pass, and summarise the rule."
+
+[[task]]
+id = "verse-before"
+url = "https://s2ar.dev/examples/verse-certification.html"
+schema = '{"type":"object","required":["summary","quote","source_url","inputs_accepted_before"],"properties":{"summary":{"type":"string","maxLength":300},"quote":{"type":"string"},"source_url":{"type":"string"},"inputs_accepted_before":{"type":"integer","minimum":0}}}'
+source = """On 2026-10-10 we measured its verdicts against the kind of input an agent under optimisation pressure produces, and the verifiers' own composite let three of them through: a sonnet with its couplet cut, a "sonnet" of one line repeated fourteen times, and a haiku of the word "the"."""
+prompt = "How many degenerate inputs did the old composite accept, and which?"
+
+[[task]]
+id = "inspect-probe"
+url = "https://s2ar.dev/examples/inspect-an-x402-endpoint.html"
+schema = '{"type":"object","required":["summary","quote","source_url","sends"],"properties":{"summary":{"type":"string","maxLength":240},"quote":{"type":"string"},"source_url":{"type":"string"},"sends":{"type":"array","items":{"type":"string"}}}}'
+source = """inspect names only what an endpoint publishes to anyone who asks; it sends no payment, no body and no identity, follows no redirects, and reaches only public hosts on 80 and 443."""
+prompt = "What does the inspect probe send and not send? Answer with the list of things it does NOT send under `sends` prefixed with 'no '."
+
+[[task]]
+id = "assert-record"
+url = "https://s2ar.dev/examples/assert-an-agents-output.html"
+schema = '{"type":"object","required":["summary","quote","source_url","kept"],"properties":{"summary":{"type":"string","maxLength":240},"quote":{"type":"string"},"source_url":{"type":"string"},"kept":{"type":"array","items":{"type":"string"}}}}'
+source = """The record carries the checks, each result and the sha256 of the text and the source, never the text: anyone holding the output can re-run the checks, and anyone at all can check the seal and the signature, free, at /v1/verify/<record_sha256>."""
+prompt = "What does an assert record keep, and what does it never keep?"
+
+[[task]]
+id = "market-oneshot"
+url = "https://s2ar.dev/examples/agent-markets.html"
+schema = '{"type":"object","required":["summary","quote","source_url","share_percent"],"properties":{"summary":{"type":"string","maxLength":240},"quote":{"type":"string"},"source_url":{"type":"string"},"share_percent":{"type":"number","minimum":0,"maximum":100}}}'
+source = """Half of all payers are one-shot: 48.6 percent of resources with three or more payers have calls at most 1.05 times their payers, the signature of indexer and probe wallets; one host holds 33 of the top 50 that way."""
+prompt = "What share of multi-payer resources show one-shot traffic, and what does that signal?"

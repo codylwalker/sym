@@ -1,0 +1,626 @@
+{
+ "stamp": "2026-10-10T1447Z",
+ "model": "claude-sonnet-5",
+ "runs": 2,
+ "summary": {
+  "plain": {
+   "n": 16,
+   "pass_rate": 0.875,
+   "cost_median": 0.0416436,
+   "cost_mean": 0.0331529625,
+   "turns_median": 1.0,
+   "asserted_in_session": 0
+  },
+  "plugin": {
+   "n": 16,
+   "pass_rate": 0.938,
+   "cost_median": 0.0599811,
+   "cost_mean": 0.064688825,
+   "turns_median": 5.0,
+   "asserted_in_session": 10
+  },
+  "paired": {
+   "headline_cost_pct": 86.8,
+   "per_task": {
+    "assert-record": 10.4,
+    "charter-directories": 141.2,
+    "charter-keep": 79.6,
+    "charter-refund": 93.9,
+    "inspect-probe": 14.1,
+    "market-oneshot": 187.9,
+    "verse-before": 76.5,
+    "verse-gates": 159.3
+   },
+   "tasks_cheaper": 0,
+   "tasks_total": 8,
+   "pass_rate_delta": 0.063
+  }
+ },
+ "rows": [
+  {
+   "task": "charter-refund",
+   "arm": "plain",
+   "rc": 0,
+   "cost_usd": 0.12734600000000001,
+   "turns": 1,
+   "cache_read": 0,
+   "session_id": "c8056e40-60b2-45b4-a673-8b2752580304",
+   "answer": "```json\n{\"summary\":\"Undelivered paid calls\u2014whether unanswered, erroring, or unverifiable within the settlement window\u2014are automatically credited as credited_not_delivered without requiring any form or appeal.\",\"quote\":\"A paid call that is not delivered is credited automatically and counted in that day's proceedings as credited_not_delivered. Not delivered means: no answer, an error answer, or an Assay record that cannot be verified within the settlement window. No form, no appeal needed.\",\"source_url\":\"https://api.s2ar.dev/charter\"}\n```",
+   "asserted_in_session": 0,
+   "run": 0,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "2f48093d550179b5dd5ff633abf2afecba3e73e1dd1d061728dcbcbd7cd7569a"
+   }
+  },
+  {
+   "task": "charter-refund",
+   "arm": "plugin",
+   "rc": 0,
+   "cost_usd": 0.18931620000000002,
+   "turns": 6,
+   "cache_read": 133611,
+   "session_id": "3cbdfc61-67bc-4611-abc7-154c579dc7af",
+   "answer": "I don't have permission to call the `assert_output` tool in this session, and it isn't being granted. I verified the quote and schema manually instead \u2014 the quote is copied verbatim from the source, and the object matches the required schema.\n\n```json\n{\"summary\":\"A paid call that goes undelivered\u2014meaning no answer, an error, or an Assay record that cannot be verified within the settlement window\u2014is automatically credited, with no form or appeal needed.\",\"quote\":\"A paid call that is not delivered is credited automatically and counted in that day's proceedings as credited_not_delivered.\",\"source_url\":\"https://api.s2ar.dev/charter\"}\n```",
+   "asserted_in_session": 4,
+   "run": 0,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "967a4769430424415a25b536f65338a7cd25c03a31e79f6324f1d319ef6bcb17"
+   }
+  },
+  {
+   "task": "charter-keep",
+   "arm": "plain",
+   "rc": 0,
+   "cost_usd": 0.0418378,
+   "turns": 1,
+   "cache_read": 22459,
+   "session_id": "8a12e266-a1ab-4d22-b4ab-ef6c3868d1ca",
+   "answer": "```json\n{\"summary\":\"Nothing about a buyer is retained or shared beyond the on-chain settlement; no payer address, history, IP, user agent, wallet link, or repeat-buyer flag is kept.\",\"quote\":\"Nothing about a buyer is collected, kept or brokered: no payer address beyond the settlement the chain already holds, no per-payer history, no IP or user agent, no key-to-wallet join, no repeat buyer flag.\",\"source_url\":\"https://api.s2ar.dev/charter\"}\n```",
+   "asserted_in_session": 0,
+   "run": 0,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "f24ba3cb0900d2d18dc4410f9dc8a516872e5fbcd0b298eef71ddfd6c26644f6"
+   }
+  },
+  {
+   "task": "charter-keep",
+   "arm": "plugin",
+   "rc": 0,
+   "cost_usd": 0.0934182,
+   "turns": 5,
+   "cache_read": 121501,
+   "session_id": "c1b3bbf5-8574-4cf5-8315-ed5c7b361dfc",
+   "answer": "I don't have permission to call the paid assert tool right now, so I'll give the answer directly.\n\n```json\n{\"summary\":\"No information about a buyer is collected or retained: only the on-chain settlement is visible, and the published distinct_payers count comes from salted hashes whose salt is discarded.\",\"quote\":\"Nothing about a buyer is collected, kept or brokered: no payer address beyond the settlement the chain already holds, no per-payer history, no IP or user agent, no key-to-wallet join, no repeat buyer flag.\",\"source_url\":\"https://api.s2ar.dev/charter\"}\n```",
+   "asserted_in_session": 2,
+   "run": 0,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "6f810a6cc4e8ca73a050b6980f5fcd6363a413784641d5b84d161d07580ae573"
+   }
+  },
+  {
+   "task": "charter-directories",
+   "arm": "plain",
+   "rc": 0,
+   "cost_usd": 0.0415176,
+   "turns": 1,
+   "cache_read": 22458,
+   "session_id": "f6c7cea1-5f2d-487f-94b6-625a09c6d468",
+   "answer": "{\"summary\":\"Rule 6 forbids the project from using its own wallets to meet a directory's traffic or payer threshold to get listed.\", \"quote\":\"we do not meet a directory's traffic or payer threshold with our own wallets\", \"source_url\":\"https://api.s2ar.dev/charter\", \"rule_number\":6}",
+   "asserted_in_session": 0,
+   "run": 0,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "caf58dea3db5ea19632d35635bafbb09865d7eb4e845edb9fd6ca2635e194b4b"
+   }
+  },
+  {
+   "task": "charter-directories",
+   "arm": "plugin",
+   "rc": 0,
+   "cost_usd": 0.045969800000000005,
+   "turns": 1,
+   "cache_read": 22459,
+   "session_id": "0e354290-0cd9-4357-bac5-d5d57ea6d647",
+   "answer": "```json\n{\"summary\":\"Rule 6 (Directories) forbids using the operator's own wallets to artificially meet a directory's traffic or payer threshold; self-settlements only count toward listing a route or testing the rail, attributed to the operator, not to buyers.\",\"quote\":\"we do not meet a directory's traffic or payer threshold with our own wallets\",\"source_url\":\"https://api.s2ar.dev/charter\",\"rule_number\":6}\n```",
+   "asserted_in_session": 0,
+   "run": 0,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "badccc22d86924463b97d5685857404221ba9ec95ea7d9e1518aa2e55571250d"
+   }
+  },
+  {
+   "task": "verse-gates",
+   "arm": "plain",
+   "rc": 0,
+   "cost_usd": 0.0449436,
+   "turns": 1,
+   "cache_read": 22458,
+   "session_id": "fa139742-93fa-427e-9124-4d5daa8a0f32",
+   "answer": "{\"type\":\"object\",\"summary\":\"Verse certification requires every gate to pass: exact line count, a content floor (distinct-word ratio, no duplicate lines, Oulipo minimum size), no credit for identical end words, a floor under every dimension, hard banned/required-word gates, and the form's composite threshold.\",\"quote\":\"accepted now requires every gate to pass: an exact line count for a fixed form, a content floor (a distinct-word ratio, no duplicate line, a minimum size for the Oulipo forms), no credit for identical end words, a floor under every dimension, banned and required words as hard gates, and the form's threshold on the composite as before.\",\"source_url\":\"https://s2ar.dev/examples/verse-certification.html\",\"gates\":[\"Exact line count for a fixed form\",\"Content floor: distinct-word ratio, no duplicate line, minimum size for Oulipo forms\",\"No credit for identical end words\",\"A floor under every dimension\",\"Banned and required words as hard gates\",\"The form's threshold on the composite score\"]}",
+   "asserted_in_session": 0,
+   "run": 0,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "056274f4ca5a61000f40c619749feef877b15932cb62f4c41649ad6c5c3d6f24"
+   }
+  },
+  {
+   "task": "verse-gates",
+   "arm": "plugin",
+   "rc": 0,
+   "cost_usd": 0.0858212,
+   "turns": 3,
+   "cache_read": 88116,
+   "session_id": "4ae7f4cc-c991-481d-ac44-bd9a1445be1e",
+   "answer": "```json\n{\"summary\": \"Acceptance now requires every gate to pass: an exact line count for the fixed form, a content floor (distinct-word ratio, no duplicate lines, minimum size for Oulipo forms), no credit for identical end words, a floor under every dimension, banned/required words as hard gates, and the form's composite threshold.\", \"quote\": \"accepted now requires every gate to pass: an exact line count for a fixed form, a content floor (a distinct-word ratio, no duplicate line, a minimum size for the Oulipo forms), no credit for identical end words, a floor under every dimension, banned and required words as hard gates, and the form's threshold on the composite as before.\", \"source_url\": \"https://s2ar.dev/examples/verse-certification.html\", \"gates\": [\"An exact line count for the fixed form\", \"A content floor: a distinct-word ratio, no duplicate line, and a minimum size for the Oulipo forms\", \"No credit for identical end words\", \"A floor under every dimension\", \"Banned and required words as hard gates\", \"The form's threshold on the composite score\"]}\n```",
+   "asserted_in_session": 2,
+   "run": 0,
+   "final": {
+    "accepted": false,
+    "verdict": "partial",
+    "gates_failed": [
+     "json_schema"
+    ],
+    "record": "547ef217c1f6aff20455748b5af533834a0db2bd7ea85e2231fbe7ceb08987d1"
+   }
+  },
+  {
+   "task": "verse-before",
+   "arm": "plain",
+   "rc": 0,
+   "cost_usd": 0.0430376,
+   "turns": 1,
+   "cache_read": 22458,
+   "session_id": "926862e8-f68b-4822-b901-8057ea139a31",
+   "answer": "{\"summary\":\"The old composite verifier accepted three degenerate inputs: a sonnet missing its couplet, a 'sonnet' of one repeated line, and a haiku consisting only of the word 'the'.\",\"quote\":\"the verifiers' own composite let three of them through: a sonnet with its couplet cut, a \\\"sonnet\\\" of one line repeated fourteen times, and a haiku of the word \\\"the\\\".\",\"source_url\":\"https://s2ar.dev/examples/verse-certification.html\",\"inputs_accepted_before\":3}",
+   "asserted_in_session": 0,
+   "run": 0,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "564d2bbf0ebaf8c21844b7bbcb0777fb50cbc72a7532a4bd9209566a347a250c"
+   }
+  },
+  {
+   "task": "verse-before",
+   "arm": "plugin",
+   "rc": 0,
+   "cost_usd": 0.0813072,
+   "turns": 5,
+   "cache_read": 121376,
+   "session_id": "da5f6b7c-3d9f-4e06-bfb9-c29defb43ec0",
+   "answer": "```json\n{\"summary\": \"The verifiers' own composite accepted three degenerate inputs: a sonnet with its couplet removed, a fake sonnet made of one line repeated fourteen times, and a haiku consisting only of the word 'the'.\", \"quote\": \"the verifiers' own composite let three of them through: a sonnet with its couplet cut, a \\\"sonnet\\\" of one line repeated fourteen times, and a haiku of the word \\\"the\\\"\", \"source_url\": \"https://s2ar.dev/examples/verse-certification.html\", \"inputs_accepted_before\": 3}\n```",
+   "asserted_in_session": 2,
+   "run": 0,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "260519d544bfaf94e8aae1aba784cf2dbd3e45762c6179230986c4755491072c"
+   }
+  },
+  {
+   "task": "inspect-probe",
+   "arm": "plain",
+   "rc": 0,
+   "cost_usd": 0.0425436,
+   "turns": 1,
+   "cache_read": 22458,
+   "session_id": "5b1be83c-b442-4bce-ab91-50fc0fed39d3",
+   "answer": "{\"summary\":\"The inspect probe only reads what an x402 endpoint publicly publishes; it does not send payment, body, or identity, does not follow redirects, and only reaches public hosts on ports 80/443.\",\"quote\":\"inspect names only what an endpoint publishes to anyone who asks; it sends no payment, no body and no identity, follows no redirects, and reaches only public hosts on 80 and 443.\",\"source_url\":\"https://s2ar.dev/examples/inspect-an-x402-endpoint.html\",\"sends\":[\"no payment\",\"no body\",\"no identity\",\"no following redirects\",\"no reaching non-public hosts\",\"no reaching ports other than 80 and 443\"]}",
+   "asserted_in_session": 0,
+   "run": 0,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "a7b6c138629f85f4848588650190e27ac6ddbf7af6bc7f54a491780c316ef5b1"
+   }
+  },
+  {
+   "task": "inspect-probe",
+   "arm": "plugin",
+   "rc": 0,
+   "cost_usd": 0.0476458,
+   "turns": 1,
+   "cache_read": 22459,
+   "session_id": "0ba2d786-b9e7-4e59-8c02-5b68a8a1683c",
+   "answer": "```json\n{\"summary\":\"The inspect probe only reads what an x402 endpoint publishes to any requester; it withholds payment, body, and identity, avoids following redirects, and only contacts public hosts on ports 80/443.\",\"quote\":\"inspect names only what an endpoint publishes to anyone who asks; it sends no payment, no body and no identity, follows no redirects, and reaches only public hosts on 80 and 443.\",\"source_url\":\"https://s2ar.dev/examples/inspect-an-x402-endpoint.html\",\"sends\":[\"no payment\",\"no body\",\"no identity\"]}\n```",
+   "asserted_in_session": 0,
+   "run": 0,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "3922200ea34f2f3222e555802ca10fd0eba1e05d0d9d3e32ea4c89cd94199d79"
+   }
+  },
+  {
+   "task": "assert-record",
+   "arm": "plain",
+   "rc": 0,
+   "cost_usd": 0.0421816,
+   "turns": 1,
+   "cache_read": 22458,
+   "session_id": "dbd4fddc-2097-4cab-8168-338b51e4abc5",
+   "answer": "```json\n{\"summary\":\"An assert record stores the checks run, each result, and sha256 hashes of the text and source \u2014 but never the original text itself.\",\"quote\":\"The record carries the checks, each result and the sha256 of the text and the source, never the text: anyone holding the output can re-run the checks, and anyone at all can check the seal and the signature, free, at /v1/verify/<record_sha256>.\",\"source_url\":\"https://s2ar.dev/examples/assert-an-agents-output.html\",\"kept\":[\"checks\",\"each result\",\"sha256 of the text\",\"sha256 of the source\"]}\n```",
+   "asserted_in_session": 0,
+   "run": 0,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "9121bbca10b695d7f516751d00f191261fd611e1cbbdaba70c82e255e5a278d8"
+   }
+  },
+  {
+   "task": "assert-record",
+   "arm": "plugin",
+   "rc": 0,
+   "cost_usd": 0.0463538,
+   "turns": 1,
+   "cache_read": 22459,
+   "session_id": "1b45b7a7-9f64-4091-a92d-fdf67889967c",
+   "answer": "```json\n{\"summary\":\"An assert record keeps the checks, each result, and the sha256 hashes of the text and source \u2014 but never the text itself.\",\"quote\":\"The record carries the checks, each result and the sha256 of the text and the source, never the text: anyone holding the output can re-run the checks, and anyone at all can check the seal and the signature, free, at /v1/verify/<record_sha256>.\",\"source_url\":\"https://s2ar.dev/examples/assert-an-agents-output.html\",\"kept\":[\"checks\",\"each result\",\"sha256 of the text\",\"sha256 of the source\"]}\n```",
+   "asserted_in_session": 0,
+   "run": 0,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "267830149801919d412fea8c67a54bcacfa5ce730b2713b04beddfbf8f4ed7e0"
+   }
+  },
+  {
+   "task": "market-oneshot",
+   "arm": "plain",
+   "rc": 0,
+   "cost_usd": 0.0421836,
+   "turns": 1,
+   "cache_read": 22458,
+   "session_id": "d001532a-575f-403e-a7da-9e00747b12af",
+   "answer": "{\"summary\":\"Nearly half of multi-payer resources show calls barely exceeding their payer count, indicating indexer/probe wallet behavior rather than genuine repeated usage, and is concentrated on one host.\",\"quote\":\"Half of all payers are one-shot: 48.6 percent of resources with three or more payers have calls at most 1.05 times their payers, the signature of indexer and probe wallets; one host holds 33 of the top 50 that way.\",\"source_url\":\"https://s2ar.dev/examples/agent-markets.html\",\"share_percent\":48.6}",
+   "asserted_in_session": 0,
+   "run": 0,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "7ac2f4b9c58f8b1b69220ed3c1f76221ce527a04a21c468ad5f68219c569cd75"
+   }
+  },
+  {
+   "task": "market-oneshot",
+   "arm": "plugin",
+   "rc": 0,
+   "cost_usd": 0.1024876,
+   "turns": 6,
+   "cache_read": 157198,
+   "session_id": "75f6319e-ecc0-4c6a-942a-7fa38aecfcfa",
+   "answer": "This tool call requires permission that wasn't granted, and it's a paid external call ($0.005) \u2014 I won't retry it without approval. I've manually verified the quote matches the provided source text exactly, so I'll return the validated answer directly.\n\n```json\n{\"summary\":\"Nearly half of multi-payer resources (3+ payers) show call counts at or near 1x their payer count, the signature of indexer and probe wallets rather than real reuse, with one host accounting for most of the top offenders.\",\"quote\":\"Half of all payers are one-shot: 48.6 percent of resources with three or more payers have calls at most 1.05 times their payers, the signature of indexer and probe wallets; one host holds 33 of the top 50 that way.\",\"source_url\":\"https://s2ar.dev/examples/agent-markets.html\",\"share_percent\":48.6}\n```",
+   "asserted_in_session": 2,
+   "run": 0,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "86558835dc31cc786d765d585ef45eef0c2738abdf8f9747aabee9e9db4dbb15"
+   }
+  },
+  {
+   "task": "charter-refund",
+   "arm": "plain",
+   "rc": 0,
+   "cost_usd": 0.007659600000000001,
+   "turns": 1,
+   "cache_read": 31378,
+   "session_id": "a9be3771-d92c-4f55-8ceb-9f70c6c28b42",
+   "answer": "```json\n{\"summary\":\"Undelivered paid calls (no answer, error, or unverifiable Assay record within the settlement window) are automatically credited and logged as credited_not_delivered, with no form or appeal required.\",\"quote\":\"A paid call that is not delivered is credited automatically and counted in that day's proceedings as credited_not_delivered.\",\"source_url\":\"https://api.s2ar.dev/charter\"}\n```",
+   "asserted_in_session": 0,
+   "run": 1,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "405caaacb44567d43518f5bca98d5fde489dec65f0b67cd434d9022ee90b1c7b"
+   }
+  },
+  {
+   "task": "charter-refund",
+   "arm": "plugin",
+   "rc": 0,
+   "cost_usd": 0.0724948,
+   "turns": 7,
+   "cache_read": 165924,
+   "session_id": "aa12fa00-4b4d-4df1-891b-43989b2844b3",
+   "answer": "Permission for the paid `assert_output` check wasn't granted, so I didn't run it \u2014 here's the answer directly instead:\n\n```json\n{\"summary\":\"If a paid call isn't delivered (no answer, an error, or an Assay record that can't be verified within the settlement window), it's automatically credited as credited_not_delivered, with no form or appeal required.\",\"quote\":\"A paid call that is not delivered is credited automatically and counted in that day's proceedings as credited_not_delivered.\",\"source_url\":\"https://api.s2ar.dev/charter\"}\n```",
+   "asserted_in_session": 4,
+   "run": 1,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "0e8195ec40c86d77c97ea363c471b4da1fd6aadb1c12ccca8d8950da260c6233"
+   }
+  },
+  {
+   "task": "charter-keep",
+   "arm": "plain",
+   "rc": 0,
+   "cost_usd": 0.0417696,
+   "turns": 1,
+   "cache_read": 22458,
+   "session_id": "6def1637-c05f-4ae8-9bbd-834d35a45679",
+   "answer": "{\"summary\":\"No buyer-identifying data is collected or kept; only an aggregate distinct-payer count derived from discarded salted hashes remains.\",\"quote\":\"Nothing about a buyer is collected, kept or brokered: no payer address beyond the settlement the chain already holds, no per-payer history, no IP or user agent, no key-to-wallet join, no repeat buyer flag.\",\"source_url\":\"https://api.s2ar.dev/charter\"}",
+   "asserted_in_session": 0,
+   "run": 1,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "8a83415d3debc2bd939ac8bd185b77d0a18d54e1f71e48a35ea993e73f80af1c"
+   }
+  },
+  {
+   "task": "charter-keep",
+   "arm": "plugin",
+   "rc": 0,
+   "cost_usd": 0.0567082,
+   "turns": 5,
+   "cache_read": 132331,
+   "session_id": "7fca2f00-c666-4974-9002-24c05fb36526",
+   "answer": "I verified the quote manually against the source (it matches verbatim), and the tool call for automated verification wasn't authorized, so I'll provide the answer directly:\n\n```json\n{\"summary\":\"No buyer data is collected or kept: no payer address beyond on-chain settlement, no per-payer history, no IP or user agent, no key-to-wallet join, and no repeat-buyer flag; distinct_payers is a salted-hash count with the salt discarded.\",\"quote\":\"Nothing about a buyer is collected, kept or brokered: no payer address beyond the settlement the chain already holds, no per-payer history, no IP or user agent, no key-to-wallet join, no repeat buyer flag.\",\"source_url\":\"https://api.s2ar.dev/charter\"}\n```",
+   "asserted_in_session": 2,
+   "run": 1,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "6ae04a37ccd2e0873e7b746c6b2ca71070ed9feb186d4ea380f35b91cfee09bc"
+   }
+  },
+  {
+   "task": "charter-directories",
+   "arm": "plain",
+   "rc": 0,
+   "cost_usd": 0.007563200000000001,
+   "turns": 1,
+   "cache_read": 31446,
+   "session_id": "45fd3324-0ad6-4491-b8a8-9cb75265caff",
+   "answer": "{\"summary\":\"The directories rule forbids buying up to a directory's traffic/payer thresholds with the operator's own wallets; own settlements only list a route or test the rail and count as the operator's, not buyers.\",\"quote\":\"we do not meet a directory's traffic or payer threshold with our own wallets\",\"source_url\":\"https://api.s2ar.dev/charter\",\"rule_number\":6}",
+   "asserted_in_session": 0,
+   "run": 1,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "e7cf5ad05e81a5c56d6f5a9f1f16b32044b8140c44449a6927c02c8c1be5dc1a"
+   }
+  },
+  {
+   "task": "charter-directories",
+   "arm": "plugin",
+   "rc": 0,
+   "cost_usd": 0.072428,
+   "turns": 7,
+   "cache_read": 201000,
+   "session_id": "fdf4395d-7ec3-42e9-a38d-40151c25d8a6",
+   "answer": "Permission for the paid verification tool wasn't granted, so I'm answering directly from the source text without it.\n\n```json\n{\"summary\": \"Rule 6 bars using the firm's own wallet settlements to help an agent or route meet a directory's traffic or payer listing threshold.\", \"quote\": \"we do not meet a directory's traffic or payer threshold with our own wallets\", \"source_url\": \"https://api.s2ar.dev/charter\", \"rule_number\": 6}\n```",
+   "asserted_in_session": 3,
+   "run": 1,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "9241490666bd7b15a7cae2401cc247846f3bb2440e5941e46e755b219c8ef89e"
+   }
+  },
+  {
+   "task": "verse-gates",
+   "arm": "plain",
+   "rc": 0,
+   "cost_usd": 0.012542000000000001,
+   "turns": 1,
+   "cache_read": 31440,
+   "session_id": "51c87bed-57b3-4e5b-adef-27e4738f3312",
+   "answer": "```json\n{\"type\":\"object\",\"required\":[\"summary\",\"quote\",\"source_url\",\"gates\"],\"properties\":{}}\n```\n\nHere's the actual answer:\n\n{\"summary\":\"A poem is accepted only if every gate passes, not just the composite score: exact line count, content-floor checks, end-word distinctness, per-dimension floors, banned/required word hard gates, and the form's composite threshold all must succeed.\",\"quote\":\"accepted now requires every gate to pass: an exact line count for a fixed form, a content floor (a distinct-word ratio, no duplicate line, a minimum size for the Oulipo forms), no credit for identical end words, a floor under every dimension, banned and required words as hard gates, and the form's threshold on the composite as before.\",\"source_url\":\"https://s2ar.dev/examples/verse-certification.html\",\"gates\":[\"Exact line count for a fixed form\",\"Content floor: distinct-word ratio\",\"Content floor: no duplicate line\",\"Content floor: minimum size for Oulipo forms\",\"No credit for identical end words\",\"A floor under every dimension\",\"Banned words as a hard gate\",\"Required words as a hard gate\",\"The form's threshold on the composite score\"]}",
+   "asserted_in_session": 0,
+   "run": 1,
+   "final": {
+    "accepted": false,
+    "verdict": "partial",
+    "gates_failed": [
+     "json_schema",
+     "quotes_in_source",
+     "citations_present"
+    ],
+    "record": "5672e2ca4b6bbc562f3f208f4ecbd20803ce54e214a64b6b5bf0b669ade4a25d"
+   }
+  },
+  {
+   "task": "verse-gates",
+   "arm": "plugin",
+   "rc": 0,
+   "cost_usd": 0.063254,
+   "turns": 6,
+   "cache_read": 131630,
+   "session_id": "21624b4e-8b90-4755-b50d-f23adf0f8fec",
+   "answer": "I don't have permission to run the `assert_output` tool in this session, so I'll provide the validated answer directly \u2014 I've manually confirmed the quote is verbatim from the source and the object matches the schema.\n\n```json\n{\"summary\":\"Verse certification now gates on every dimension: exact line count, a content floor (distinct-word ratio, no duplicate lines, Oulipo minimum size), no credit for repeated end words, banned/required word hard gates, and the form's composite threshold.\",\"quote\":\"accepted now requires every gate to pass: an exact line count for a fixed form, a content floor (a distinct-word ratio, no duplicate line, a minimum size for the Oulipo forms), no credit for identical end words, a floor under every dimension, banned and required words as hard gates, and the form's threshold on the composite as before.\",\"source_url\":\"https://s2ar.dev/examples/verse-certification.html\",\"gates\":[\"Exact line count for a fixed form\",\"Content floor: distinct-word ratio, no duplicate line, minimum size for Oulipo forms\",\"No credit for identical end words\",\"A floor under every dimension\",\"Banned and required words as hard gates\",\"The form's threshold on the composite\"]}\n```",
+   "asserted_in_session": 3,
+   "run": 1,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "b2ff0106176c247c6264b8375c74676662f97dbb351048781063882fa0392772"
+   }
+  },
+  {
+   "task": "verse-before",
+   "arm": "plain",
+   "rc": 0,
+   "cost_usd": 0.0081412,
+   "turns": 1,
+   "cache_read": 31436,
+   "session_id": "ef23c80b-1cce-4c48-9b96-ecc3f2dd9076",
+   "answer": "{\"summary\":\"The verifiers' composite verdict let three degenerate inputs pass: a sonnet missing its couplet, a 'sonnet' repeating one line fourteen times, and a haiku consisting only of the word 'the'.\",\"quote\":\"the verifiers' own composite let three of them through: a sonnet with its couplet cut, a \\\"sonnet\\\" of one line repeated fourteen times, and a haiku of the word \\\"the\\\".\",\"source_url\":\"https://s2ar.dev/examples/verse-certification.html\",\"inputs_accepted_before\":3}",
+   "asserted_in_session": 0,
+   "run": 1,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "dcbae9bbefe67fc4ff0c286793be2c97388fbc5d96e14b57c6c286dd00f7bc13"
+   }
+  },
+  {
+   "task": "verse-before",
+   "arm": "plugin",
+   "rc": 0,
+   "cost_usd": 0.009042000000000001,
+   "turns": 1,
+   "cache_read": 32040,
+   "session_id": "ea29c7b4-b24a-4202-86dd-11d7a12c9c9e",
+   "answer": "```json\n{\"summary\":\"The old composite verdict let three degenerate inputs pass: a sonnet missing its final couplet, a 'sonnet' made of one line repeated fourteen times, and a haiku consisting only of the word 'the'.\",\"quote\":\"the verifiers' own composite let three of them through: a sonnet with its couplet cut, a \\\"sonnet\\\" of one line repeated fourteen times, and a haiku of the word \\\"the\\\".\",\"source_url\":\"https://s2ar.dev/examples/verse-certification.html\",\"inputs_accepted_before\":3}\n```",
+   "asserted_in_session": 0,
+   "run": 1,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "6129b3d68152b704cdba3b63ddb20dbd7545515ea35a2b6e006623ac06d28004"
+   }
+  },
+  {
+   "task": "inspect-probe",
+   "arm": "plain",
+   "rc": 0,
+   "cost_usd": 0.008158,
+   "turns": 1,
+   "cache_read": 31420,
+   "session_id": "2f1d10f0-01c3-4bf3-9da5-e67cd6c26b54",
+   "answer": "{\"summary\":\"The inspect probe only reads what an x402 endpoint publicly discloses; it withholds payment, body, and identity, avoids redirects, and only contacts public hosts on ports 80/443.\",\"quote\":\"inspect names only what an endpoint publishes to anyone who asks; it sends no payment, no body and no identity, follows no redirects, and reaches only public hosts on 80 and 443.\",\"source_url\":\"https://s2ar.dev/examples/inspect-an-x402-endpoint.html\",\"sends\":[\"no payment\",\"no body\",\"no identity\"]}",
+   "asserted_in_session": 0,
+   "run": 1,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "2a944a5d9f23ae1eb1c333b2c06e04c0d82712edfc9dc4e51406c0222e66a5f5"
+   }
+  },
+  {
+   "task": "inspect-probe",
+   "arm": "plugin",
+   "rc": 0,
+   "cost_usd": 0.0102088,
+   "turns": 1,
+   "cache_read": 32024,
+   "session_id": "688b5390-3bb0-4e0e-b8d8-5ba719907dd7",
+   "answer": "```json\n{\"summary\":\"The inspect probe only reads what an x402 endpoint publicly declares; it sends no payment, no body, and no identity, follows no redirects, and only reaches public hosts on ports 80/443.\",\"quote\":\"inspect names only what an endpoint publishes to anyone who asks; it sends no payment, no body and no identity, follows no redirects, and reaches only public hosts on 80 and 443.\",\"source_url\":\"https://s2ar.dev/examples/inspect-an-x402-endpoint.html\",\"sends\":[\"no payment\",\"no body\",\"no identity\"]}\n```",
+   "asserted_in_session": 0,
+   "run": 1,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "db98e537f54d55b3782ee9b89982c8aec13996a2a479f7bb44391325520d4bd8"
+   }
+  },
+  {
+   "task": "assert-record",
+   "arm": "plain",
+   "rc": 0,
+   "cost_usd": 0.0086654,
+   "turns": 1,
+   "cache_read": 31407,
+   "session_id": "b49815a2-b548-4b02-9e8f-c6462a27d929",
+   "answer": "```json\n{\"summary\":\"An assert record keeps the checks run, each check's result, and the sha256 hashes of the text and the source \u2014 but never the original text itself.\",\"quote\":\"The record carries the checks, each result and the sha256 of the text and the source, never the text: anyone holding the output can re-run the checks, and anyone at all can check the seal and the signature, free, at /v1/verify/<record_sha256>.\",\"source_url\":\"https://s2ar.dev/examples/assert-an-agents-output.html\",\"kept\":[\"the checks\",\"each check's result\",\"sha256 of the text\",\"sha256 of the source\"]}\n```",
+   "asserted_in_session": 0,
+   "run": 1,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "fba0182ce8422a495451a2892e89146d95b21451d90a74c4e580ee148a21d85b"
+   }
+  },
+  {
+   "task": "assert-record",
+   "arm": "plugin",
+   "rc": 0,
+   "cost_usd": 0.0097762,
+   "turns": 1,
+   "cache_read": 32011,
+   "session_id": "98516db9-1fd7-4118-ba7c-d1cdc3bf7baa",
+   "answer": "```json\n{\"summary\":\"An assert record keeps the checks run, their results, and the sha256 hashes of the text and source, but never the text itself.\",\"quote\":\"The record carries the checks, each result and the sha256 of the text and the source, never the text: anyone holding the output can re-run the checks, and anyone at all can check the seal and the signature, free, at /v1/verify/<record_sha256>.\",\"source_url\":\"https://s2ar.dev/examples/assert-an-agents-output.html\",\"kept\":[\"the checks\",\"each result\",\"the sha256 of the text\",\"the sha256 of the source\"]}\n```",
+   "asserted_in_session": 0,
+   "run": 1,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "62435aeb548eef51143103c69ef18323db43e90a6497f835383c5019e8b16a81"
+   }
+  },
+  {
+   "task": "market-oneshot",
+   "arm": "plain",
+   "rc": 0,
+   "cost_usd": 0.010357000000000002,
+   "turns": 1,
+   "cache_read": 31415,
+   "session_id": "b281b79b-aaea-4f2c-9dc9-5fb96f48d7a1",
+   "answer": "```json\n{\"summary\":\"48.6% of multi-payer resources (3+ payers) show calls at most 1.05x their payer count, a near 1:1 call-to-payer ratio signaling one-shot indexer/probe wallet traffic rather than repeat usage; one host accounts for 33 of the top 50 such resources.\",\"quote\":\"Half of all payers are one-shot: 48.6 percent of resources with three or more payers have calls at most 1.05 times their payers, the signature of indexer and probe wallets; one host holds 33 of the top 50 that way.\",\"source_url\":\"https://s2ar.dev/examples/agent-markets.html\",\"share_percent\":48.6}\n```",
+   "asserted_in_session": 0,
+   "run": 1,
+   "final": {
+    "accepted": false,
+    "verdict": "partial",
+    "gates_failed": [
+     "json_schema"
+    ],
+    "record": "9c15554d2a307750d557c68b10e3258753d6e39d3c0868b4f5666c476cb7a298"
+   }
+  },
+  {
+   "task": "market-oneshot",
+   "arm": "plugin",
+   "rc": 0,
+   "cost_usd": 0.0487894,
+   "turns": 5,
+   "cache_read": 130977,
+   "session_id": "3d020055-1638-4732-911f-b89a67912ca5",
+   "answer": "I don't have permission to call the paid verification tool, but I've manually confirmed the quote is verbatim from the given source text.\n\n```json\n{\"summary\":\"48.6% of multi-payer resources (3+ payers) show one-shot call patterns\u2014calls at most 1.05x payers\u2014signaling indexer/probe wallet traffic rather than genuine reuse, concentrated heavily under one host.\",\"quote\":\"48.6 percent of resources with three or more payers have calls at most 1.05 times their payers, the signature of indexer and probe wallets\",\"source_url\":\"https://s2ar.dev/examples/agent-markets.html\",\"share_percent\":48.6}\n```",
+   "asserted_in_session": 2,
+   "run": 1,
+   "final": {
+    "accepted": true,
+    "verdict": "pass",
+    "gates_failed": [],
+    "record": "10a678ddcc592c144e0353b58b8c0fcd4893c2a840195bac2a202471da84bdea"
+   }
+  }
+ ],
+ "regraded": "2026-10-10T1458Z"
+}
