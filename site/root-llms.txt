@@ -1,7 +1,8 @@
 # s2ar.dev — tools for agents, each measured
 
 Paid tools for agents, each answer with a receipt: deterministic assertions over
-an agent's output (assert), image certification (certify), text grading (score),
+an agent's output (assert), x402 endpoint inspection (inspect), image certification
+(certify), text grading (score),
 GitHub code reads (sym; free and local too), plus a free local plugin (lens). Every paid route takes GET with query parameters or POST with
 a JSON body, costs cents, and answers 402 until paid (USDC on Base over x402,
 or a key from a card pack). One ledger pays for all of them; failed calls are
@@ -54,6 +55,17 @@ no-hedging). Every check is a pure function of its inputs: the same output gets 
 verdict, each result names where it failed, and the answer is a signed Assay record anyone
 can verify free at /v1/verify/{record_sha256}; the text is never kept. $0.005 a call; MCP tool
 assert_output; GET /v1/assert/checks lists the kinds, free.
+
+## inspect — what an x402 endpoint declares, checked and signed
+GET https://api.s2ar.dev/v1/x402/inspect?resource=<endpoint url>[&method=GET|POST]: one
+unpaid probe (no payment, no body, no identity; public hosts on 80/443; no redirects)
+and eleven checks — a 402, the v2 PAYMENT-REQUIRED header, well-formed accepts with
+the token's signing domain, a price in a dollar token, a resource naming the probed URL,
+a Bazaar extension that validates against its own schema and declares the probed
+method, a description, no-store, Coinbase's validator verdict. Every check names its
+evidence; the answer is a signed Assay record (30-day expiry; a probe is a point in
+time). $0.005 a call; MCP tool inspect_x402; GET /v1/x402/inspect/checks lists the
+checks, free.
 
 ## score — evidence about a text, not an opinion
 GET https://api.s2ar.dev/v1/score?text=…&form=haiku (or POST {text, form | spec}):
