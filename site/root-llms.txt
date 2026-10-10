@@ -86,6 +86,12 @@ re-derived before publishing; and live demos on the free samples (score, verify,
 https://s2ar.dev/examples/agent-markets.html — the agent markets measured daily (who gets paid, prices, where
 evidence sells, our own position), every number a living number from the snapshot; aggregates in the site repo.
 
+## The plugin
+claude plugin marketplace add https://github.com/codylwalker/sym && claude plugin install s2ar@starlab
+— the hosted MCP server, the skills `assert` (check an output before it goes out) and `inspect`
+(probe an x402 endpoint before paying it), and free reminders under an answer; a hook never makes a
+paid call; a key is optional. Page: https://s2ar.dev/mcp.html
+
 ## Paying as an agent
 Every metered endpoint answers HTTP 402 with a quote listing the rails that can settle right now, plus
 how_to_pay, docs and example_get: x402 (USDC on Base; v1 accepts in the JSON body + X-PAYMENT, v2

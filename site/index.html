@@ -97,6 +97,7 @@ src/ops.rs — 271 lines, 14 symbols
   <h2>The same verbs over any public repo, paid per call.</h2>
   <p class="lead">Managed agents, web agents and sandboxes without cargo get <code>map</code> and <code>read</code> over a git URL. The server clones shallowly, caches for an hour, and answers in the same shape as the CLI. It is also an MCP server over HTTP, one line in any client:</p>
 <pre><b>$</b> claude mcp add s2ar --transport http https://api.s2ar.dev/mcp --header "Authorization: Bearer &lt;key&gt;"
+<b>$</b> claude plugin install s2ar@starlab        <i># or: the same server as a plugin, with skills and free reminders; no key needed to start</i>
 <i>tools: sym_map_repo $0.01 · sym_ls_repo · sym_read_repo · sym_find_repo $0.005 · sym_where_repo $0.01 · score_text $0.005 · assert_output $0.005 · inspect_x402 $0.005 · certify_image $0.01 · buy_credits
 every paid tool takes an optional x402_payment argument (USDC on Base per call, no key); ten languages: Rust, Python, TypeScript/TSX, JavaScript, Go, Lua, C, C++, Java, Ruby</i></pre>
   <p class="lead">Over plain HTTP every route takes <b>GET with query parameters</b> or POST with a JSON body, and <code>repo</code> is <code>owner/repo</code>, <code>github.com/owner/repo</code> or the URL. Payment is the 402 handshake, in three rails ordered by how autonomous the agent can be.</p>
