@@ -6,8 +6,8 @@
     "url": "https://s2ar.dev"
   },
   "metadata": {
-    "description": "s2ar's tools for Claude Code: sym (read the function, not the file) and lens (the screenshot, not the pixels)",
-    "version": "0.4.1"
+    "description": "s2ar's tools for Claude Code: sym (read the function, not the file), lens (the screenshot, not the pixels) and s2ar (the hosted tools: assert, inspect, score, certify, sym over any public repo)",
+    "version": "0.5.0"
   },
   "plugins": [
     {
@@ -20,6 +20,13 @@
       "name": "lens",
       "source": "./plugin-lens",
       "description": "lens: the screenshot, not the pixels. A whole-image Read over 1024 px comes back downscaled to the size a model reads, with the tokens kept out on the line.",
+      "version": "0.1.0",
+      "category": "productivity"
+    },
+    {
+      "name": "s2ar",
+      "source": "./plugin-s2ar",
+      "description": "s2ar: the hosted tools as MCP tools \u2014 assert an output against a schema and a source (a signed record), inspect an x402 endpoint before paying it, grade a text, certify an image, read code from any public repo. Free samples first; a $5 key or USDC per call after. Hooks only remind.",
       "version": "0.1.0",
       "category": "productivity"
     }

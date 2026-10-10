@@ -1,0 +1,7 @@
+{
+  "description": "s2ar: a line of context at the start, and free reminders under an answer (never a paid call)",
+  "modules": [
+    "./s2ar.js"
+  ],
+  "hooks": {}
+}

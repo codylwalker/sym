@@ -1,0 +1,56 @@
+{
+  "name": "s2ar",
+  "displayName": "s2ar \u2014 paid tools for agents, each with a receipt",
+  "version": "0.1.0",
+  "description": "assert an output (JSON schema, terms, citations, quotations found in a source; a signed record), inspect an x402 endpoint before paying it, grade a text against a form, certify an image \u2014 the hosted s2ar tools as MCP tools, free samples first, a $5 key or USDC per call after. Hooks only remind; every paid call is a tool you see.",
+  "author": {
+    "name": "s2ar",
+    "email": "cody@s2ar.dev",
+    "url": "https://s2ar.dev"
+  },
+  "homepage": "https://s2ar.dev/mcp.html",
+  "repository": "https://github.com/codylwalker/sym",
+  "license": "LicenseRef-PolyForm-Shield-1.0.0",
+  "keywords": [
+    "evaluation",
+    "assert",
+    "json-schema",
+    "x402",
+    "receipts",
+    "mcp",
+    "agents"
+  ],
+  "icon": "./logo.png",
+  "documentationUrl": "https://s2ar.dev/mcp.html",
+  "supportUrl": "https://github.com/codylwalker/sym/issues",
+  "privacyPolicyUrl": "https://s2ar.dev/sym/privacy.html",
+  "termsOfServiceUrl": "https://s2ar.dev/sym/terms.html",
+  "mcpServers": {
+    "api": {
+      "type": "http",
+      "url": "https://api.s2ar.dev/mcp",
+      "headers": {
+        "Authorization": "Bearer ${user_config.api_key}"
+      }
+    }
+  },
+  "userConfig": {
+    "api_key": {
+      "type": "string",
+      "title": "s2ar key",
+      "description": "Optional. A key from a $5 pack (https://s2ar.dev/mcp.html) or from signing in at https://api.s2ar.dev/login. Without one, each tool answers a few calls a day free; after that it answers with the price and how to pay.",
+      "sensitive": true,
+      "required": false
+    },
+    "reminders": {
+      "type": "string",
+      "title": "Reminders",
+      "description": "on (default): a line under an answer when it carries JSON that was not asserted, or names an x402 endpoint that was not inspected. off: no lines.",
+      "options": [
+        "on",
+        "off"
+      ],
+      "default": "on"
+    }
+  }
+}
