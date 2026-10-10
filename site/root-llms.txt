@@ -1,8 +1,8 @@
 # s2ar.dev — tools for agents, each measured
 
-Paid tools for agents, each answer with a receipt: GitHub code reads (sym),
-text grading (score) and image certification (certify), plus a free local
-plugin (lens). Every paid route takes GET with query parameters or POST with
+Paid tools for agents, each answer with a receipt: deterministic assertions over
+an agent's output (assert), image certification (certify), text grading (score),
+GitHub code reads (sym; free and local too), plus a free local plugin (lens). Every paid route takes GET with query parameters or POST with
 a JSON body, costs cents, and answers 402 until paid (USDC on Base over x402,
 or a key from a card pack). One ledger pays for all of them; failed calls are
 never charged; nothing is kept about a caller.
@@ -43,6 +43,17 @@ signed Assay record; GET /v1/verify/{record_sha256} is free, forever (the
 trust layer is never paywalled). $0.01 a call; MCP tool certify_image.
 Measured over 12,123 sealed VLM calls: 0.96–0.97 answer retention at 12–22%
 billed savings. Page: https://s2ar.dev/
+
+## assert — an agent's output, checked; a signed record
+GET https://api.s2ar.dev/v1/assert?text=…&checks=[{"check":"json_schema","schema":{…}},{"check":"quotes_in_source"}]&source=…
+(or POST {text | json, checks | rubric, source?, schema?}): JSON validity and schema (Draft
+2020-12), required or banned keys and terms, lengths, guarded regexes, numbers in range,
+citations present, quotations found verbatim in a source, URLs under allowed domains, the
+poetry verifiers; or a named rubric (strict-json, api-response, cited-answer, quotes-source,
+no-hedging). Every check is a pure function of its inputs: the same output gets the same
+verdict, each result names where it failed, and the answer is a signed Assay record anyone
+can verify free at /v1/verify/{record_sha256}; the text is never kept. $0.005 a call; MCP tool
+assert_output; GET /v1/assert/checks lists the kinds, free.
 
 ## score — evidence about a text, not an opinion
 GET https://api.s2ar.dev/v1/score?text=…&form=haiku (or POST {text, form | spec}):
