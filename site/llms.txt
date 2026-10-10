@@ -14,16 +14,16 @@ Operated by s2ar (Cody Lee Walker, Canada). Contact: cody@s2ar.dev.
 
 ## Hosted (paid per call)
 
-- MCP over HTTP: `claude mcp add --transport http sym-hosted https://api.s2ar.dev/mcp --header "Authorization: Bearer <key>"`. Tools `sym_map_repo`, `sym_ls_repo`, `sym_read_repo`, `sym_find_repo`, `sym_where_repo` (code by meaning; the first call on a repository starts its index and answers "indexing", call again in a moment), `score_text` (a text against a poetic form), `buy_credits` (returns the payment link; pay it with the Link agent wallet, then send the key as the Bearer header).
-
-- `POST https://api.s2ar.dev/v1/sym/map` body `{"repo": "<public git url>", "ref": "<tag|branch>", "budget": 1000}` → `{ok, text, data, tokens_est, charged_usd}`. $0.01 per call.
-- `POST https://api.s2ar.dev/v1/sym/read` body `{"repo", "ref", "file", "symbol"}`; `/v1/sym/ls` `{"repo","ref","file"}`; `/v1/sym/find` `{"repo","ref","name","prefix?"}`. $0.005 per call.
-- `POST https://api.s2ar.dev/v1/sym/where` body `{"repo", "ref", "query", "k"}` → the symbols that best match the question by meaning. $0.02 per call; 202 while the checkout's index is being built (nothing charged).
-- `POST https://api.s2ar.dev/v1/score` body `{"text", "form" | "spec"}` → scores, composite, accepted, diagnostics (`GET /v1/score/forms` lists the forms, free). $0.005 per call.
-- Three keyless calls a day are free; signing in grants $0.50. The root index of every s2ar tool: https://s2ar.dev/llms.txt
-- Unpaid requests get HTTP 402 carrying every rail: `WWW-Authenticate: Payment` (Stripe Machine Payments Protocol: cards via Shared Payment Tokens, USDC via Tempo), an x402 body (USDC on Base, header `X-PAYMENT`), and a `checkout_url` for a human to buy a credit pack (then `Authorization: Bearer <key>`).
-- Agent skill for card payments: `npx skills add stripe/link-cli`. Test mode is supported.
-- Failed requests are never charged. Only public repositories are read; checkouts are cached for one hour and never logged.
+- MCP over HTTP: `claude mcp add s2ar --transport http https://api.s2ar.dev/mcp --header "Authorization: Bearer <key>"`. Tools `sym_map_repo` ($0.01), `sym_ls_repo`, `sym_read_repo`, `sym_find_repo` ($0.005), `sym_where_repo` (code by meaning; the first call on a repository starts its index and answers "indexing", call again in a moment; $0.01), `score_text` (a text against a form, $0.005), `certify_image` (compress an image and prove a vision model still reads it; a signed record; $0.01), `buy_credits` (the card-pack links and the Machine Payments Protocol link). Every paid tool takes an optional `x402_payment` argument: USDC on Base per call, no key.
+- Every route answers GET with query parameters or POST with a JSON body. `repo` is `owner/repo` (GitHub), `github.com/owner/repo`, or an https URL on github.com, gitlab.com or codeberg.org.
+- `GET https://api.s2ar.dev/v1/sym/map?repo=BurntSushi/ripgrep&ref=14.1.1&budget=600` → `{ok, text, data, tokens_est, charged_usd, repo, ref, receipt}`. $0.01 per call.
+- `GET /v1/sym/read?repo=&ref=&file=&symbol=` · `/v1/sym/ls?repo=&file=` · `/v1/sym/find?repo=&name=[&prefix=true]`. $0.005 per call.
+- `GET /v1/sym/where?repo=&query=[&k=8]` → the definitions that best match the question by meaning. $0.01 per call; 202 while the checkout's index is being built (nothing charged).
+- `GET /v1/score?text=&form=` (or POST `{text, form | spec}`) → scores, composite, accepted, diagnostics (`GET /v1/score/forms` lists the forms, free). $0.005 per call.
+- `GET /v1/certify?image_url=&probe=ocr` (or POST `{image_url | image_b64, probe}`, or multipart `original`) → a signed Assay record; verify free at `GET /v1/verify/{record_sha256}`. $0.01 per call.
+- Three keyless calls a day are free on each plain route (one for certify); signing in grants $0.50. The root index of every s2ar tool: https://s2ar.dev/llms.txt
+- Unpaid requests get HTTP 402: an x402 quote (USDC on Base; v1 `accepts` in the body + `X-PAYMENT`, v2 `PAYMENT-REQUIRED` header + `PAYMENT-SIGNATURE`), the card packs under `credits_card` ($5/$25/$100; the key is shown once after checkout, then `Authorization: Bearer <key>`), `how_to_pay`, `docs` and `example_get`. The `/x402/v1/…` mirror of each route always answers 402 until paid (the surface for x402 clients and directories). OpenAPI with prices and examples: https://api.s2ar.dev/openapi.json
+- Every answer carries a receipt (`receipt.evidence_hash`, the cost, the determinism; header `X-Assay-Receipt`). Failed requests are never charged. Only public repositories are read; checkouts are cached for one hour and never logged.
 
 ## Worked examples
 
@@ -33,7 +33,7 @@ Real calls with their receipts, every number re-derived: https://s2ar.dev/exampl
 
 - "Use sym_map on this repo with a 1200-token budget, then sym_read the function that parses the --glob flag."
 - "Before reading src/searcher.rs, run sym ls on it and pick the symbol."
-- "Map https://github.com/BurntSushi/ripgrep at 14.1.1 through api.s2ar.dev and tell me which file has the most importers."
+- "Map BurntSushi/ripgrep at 14.1.1 through api.s2ar.dev and tell me which file has the most importers."
 
 ## Links
 

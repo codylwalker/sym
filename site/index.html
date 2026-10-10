@@ -96,20 +96,24 @@ src/ops.rs — 271 lines, 14 symbols
   <div class="eyebrow">for agents that cannot install a binary</div>
   <h2>The same verbs over any public repo, paid per call.</h2>
   <p class="lead">Managed agents, web agents and sandboxes without cargo get <code>map</code> and <code>read</code> over a git URL. The server clones shallowly, caches for an hour, and answers in the same shape as the CLI. It is also an MCP server over HTTP, one line in any client:</p>
-<pre><b>$</b> claude mcp add --transport http sym-hosted https://api.s2ar.dev/mcp --header "Authorization: Bearer &lt;key&gt;"
-<i>tools: sym_map_repo · sym_ls_repo · sym_read_repo · buy_credits (returns the payment link; an agent with a Link wallet pays it and gets a key)</i></pre>
-  <p class="lead">Over plain HTTP, payment is the 402 handshake, in three rails ordered by how autonomous the agent can be.</p>
-<pre><b>POST</b> https://api.s2ar.dev/v1/sym/map
-{ "repo": "https://github.com/BurntSushi/ripgrep", "ref": "14.1.1", "budget": 1200 }
+<pre><b>$</b> claude mcp add s2ar --transport http https://api.s2ar.dev/mcp --header "Authorization: Bearer &lt;key&gt;"
+<i>tools: sym_map_repo $0.01 · sym_ls_repo · sym_read_repo · sym_find_repo $0.005 · sym_where_repo $0.01 · score_text $0.005 · certify_image $0.01 · buy_credits
+every paid tool takes an optional x402_payment argument (USDC on Base per call, no key); ten languages: Rust, Python, TypeScript/TSX, JavaScript, Go, Lua, C, C++, Java, Ruby</i></pre>
+  <p class="lead">Over plain HTTP every route takes <b>GET with query parameters</b> or POST with a JSON body, and <code>repo</code> is <code>owner/repo</code>, <code>github.com/owner/repo</code> or the URL. Payment is the 402 handshake, in three rails ordered by how autonomous the agent can be.</p>
+<pre><b>GET</b> https://api.s2ar.dev/v1/sym/read?repo=BurntSushi/ripgrep&amp;ref=14.1.1&amp;file=crates/core/flags/defs.rs&amp;symbol=Glob%20as%20Flag
 
 <i>← 402 Payment Required</i>
-WWW-Authenticate: Payment …                 <i># Stripe Machine Payments Protocol (cards via SPT, USDC via Tempo)</i>
-{ "x402Version": 1, "accepts": [ … ] }      <i># x402: USDC on Base, no account</i>
-{ "checkout_url": "https://buy.stripe.com/…" }   <i># a human buys a credit pack; the key goes in Authorization: Bearer</i></pre>
+{ "x402Version": 1, "accepts": [ … ] }           <i># x402: USDC on Base, no account; v2 in the PAYMENT-REQUIRED header</i>
+{ "credits_card": { "5": "https://buy.stripe.com/…", … } }   <i># a human buys a pack; the key is shown once, then Authorization: Bearer</i>
+{ "how_to_pay": "…", "docs": "…", "example_get": "…" }   <i># every quote says how, and where the worked example is</i>
+
+<i>← 200, paid</i>
+{ "ok": true, "text": "impl Glob as Flag (crates/core/flags/defs.rs, lines 2459-2512) …", "charged_usd": 0.005,
+  "receipt": { "evidence_hash": "sha256:…", "cost_usd": 0.005, "determinism": "replayable" } }</pre>
   <table>
     <tr><th>rail</th><th>who pays</th><th>autonomy</th><th>minimum</th></tr>
     <tr><td class="mono">Authorization: Bearer sk-…</td><td>a human bought credits once</td><td>full, after the first purchase</td><td>$5 pack</td></tr>
-    <tr><td class="mono">X-PAYMENT (x402)</td><td>the agent's USDC wallet on Base</td><td>full</td><td>$0.005</td></tr>
+    <tr><td class="mono">PAYMENT-SIGNATURE / X-PAYMENT (x402)</td><td>the agent's USDC wallet on Base; over MCP, the <code>x402_payment</code> argument</td><td>full</td><td>$0.005</td></tr>
     <tr><td class="mono">Authorization: Payment (MPP, card) → <code>/v1/credits/buy</code></td><td>the human's card through the Link agent wallet; buys a $5/$25/$100 pack and returns a key</td><td>one approval tap per pack, by Link's design; then full</td><td>$5 pack (cards need $0.50+, a call costs cents)</td></tr>
     <tr><td class="mono">Authorization: Payment (MPP, Tempo)</td><td>the agent's USDC wallet on Tempo, settled by Stripe</td><td>full</td><td>$0.01 · when Stripe's crypto capability is enabled on our account (not yet)</td></tr>
   </table>
@@ -129,7 +133,7 @@ WWW-Authenticate: Payment …                 <i># Stripe Machine Payments Proto
   <h2>Free where it runs on your machine. Cents where we run it.</h2>
   <div class="grid2">
     <div class="card"><h3>Local: free</h3><p>The CLI, the Claude Code plugin and the MCP server. Source-available under PolyForm Shield 1.0.0: read it, build it, self-host it.</p></div>
-    <div class="card"><h3>Hosted: per call</h3><p><code>/v1/sym/map</code> $0.01 · <code>/v1/sym/read</code>, <code>/ls</code>, <code>/find</code> $0.005 · <code>/v1/sym/where</code> (code by meaning, over a semantic index we build once per checkout on our own GPU) $0.02 · <code>/v1/score</code> (a text against a poetic form, programmatic verifiers) $0.005. Credit packs of $5, $25 and $100 through Stripe, or pay per call from a wallet. One ledger for every s2ar API; credits you buy for sym also pay for <a href="https://s2ar.dev">starlens</a> certificates.</p></div>
+    <div class="card"><h3>Hosted: per call</h3><p><code>/v1/sym/map</code> $0.01 · <code>/v1/sym/read</code>, <code>/ls</code>, <code>/find</code> $0.005 · <code>/v1/sym/where</code> (code by meaning, over a semantic index we build once per checkout on our own GPU) $0.01 · <code>/v1/score</code> (a text against a form, programmatic verifiers) $0.005 · <code>/v1/certify</code> (compress an image, prove the model still reads it; a signed record) $0.01. Three keyless calls a day are free on each route. Credit packs of $5, $25 and $100 by card, or USDC on Base per call over x402. One ledger for every s2ar API, and every answer carries a receipt. <a href="/examples/pay-per-call.html">The pay-per-call walkthrough →</a> · <a href="/examples/agent-markets.html">where this sits in the market →</a> · <a href="https://api.s2ar.dev/.well-known/proceedings.json">today's proceedings →</a></p></div>
   </div>
 </section>
 
@@ -139,10 +143,10 @@ WWW-Authenticate: Payment …                 <i># Stripe Machine Payments Proto
   <table>
     <tr><th>front</th><th>call</th><th>returns</th></tr>
     <tr><td class="mono">CLI</td><td class="mono">sym ls | read | map [--json] [--est]</td><td>the legacy text, or JSON with <code>tokens_est</code></td></tr>
-    <tr><td class="mono">MCP (hosted, HTTP)</td><td class="mono">claude mcp add --transport http … https://api.s2ar.dev/mcp</td><td><code>sym_map_repo</code>, <code>sym_ls_repo</code>, <code>sym_read_repo</code>, <code>buy_credits</code>; a keyless call answers "payment required" and points at <code>buy_credits</code></td></tr>
+    <tr><td class="mono">MCP (hosted, HTTP)</td><td class="mono">claude mcp add s2ar --transport http https://api.s2ar.dev/mcp …</td><td><code>sym_map_repo</code>, <code>sym_ls_repo</code>, <code>sym_read_repo</code>, <code>sym_find_repo</code>, <code>sym_where_repo</code>, <code>score_text</code>, <code>certify_image</code>, <code>buy_credits</code>; a keyless call answers "payment required" with the x402 accepts, the card packs and <code>how_to_pay</code></td></tr>
     <tr><td class="mono">MCP (stdio)</td><td class="mono">sym_ls {file} · sym_read {file,symbol} · sym_map {dir,budget}</td><td>one text content block; failures are <code>isError</code>, never protocol errors</td></tr>
     <tr><td class="mono">HTTP (local)</td><td class="mono">sym serve --port 8431 --root DIR → POST /ls /read /map</td><td><code>{ok, text, data, tokens_est}</code>; every path jailed under the root</td></tr>
-    <tr><td class="mono">HTTP (hosted)</td><td class="mono">POST /v1/sym/map {repo,ref,budget} · /v1/sym/read {repo,ref,file,symbol}</td><td>the same, plus <code>charged_usd</code>; 402 with all rails when unpaid</td></tr>
+    <tr><td class="mono">HTTP (hosted)</td><td class="mono">GET /v1/sym/map?repo=&amp;ref=&amp;budget= · /v1/sym/read?repo=&amp;file=&amp;symbol= (or POST the same fields as JSON)</td><td>the same, plus <code>charged_usd</code> and a <code>receipt</code>; 402 with every rail and <code>how_to_pay</code> when unpaid</td></tr>
     <tr><td class="mono">hook</td><td class="mono">sym hook pre</td><td>PreToolUse <code>additionalContext</code> for a big-file Read; exit 0 always</td></tr>
   </table>
   <p class="note">The repo map resolves each file's imports to files in the tree (Rust mod/use, Python, JS/TS relative paths, Go packages, Lua require, C includes, Java imports, Ruby requires), runs PageRank over that graph with test files voting at a discount, and emits top-level signatures (twelve per file, then "+N more") until the budget is spent.</p>
