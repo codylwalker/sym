@@ -69,9 +69,12 @@ checks, free.
 
 ## score — evidence about a text, not an opinion
 GET https://api.s2ar.dev/v1/score?text=…&form=haiku (or POST {text, form | spec}):
-programmatic verifiers (meter, rhyme, syllables; CMUdict-pinned, replayable)
-against a named form (GET /v1/score/forms, free) or an inline spec; scores, a
-composite, an accepted flag, diagnostics. $0.005 a call; MCP tool score_text.
+programmatic verifiers (meter, rhyme, syllables; the pronouncing dictionary named
+by version in every answer) against a named form (GET /v1/score/forms, free, with
+the acceptance policy) or an inline spec; the verdict is gated (exact line count,
+content floor, no credit for identical end words, a floor under every dimension),
+every gate names its evidence, and the answer is a signed record. $0.005 a call;
+MCP tool score_text. The battery that made the gates: https://s2ar.dev/examples/verse-certification.html
 
 ## Worked examples
 
