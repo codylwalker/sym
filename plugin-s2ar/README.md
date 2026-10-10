@@ -5,7 +5,7 @@ claude plugin marketplace add https://github.com/codylwalker/sym
 claude plugin install s2ar@starlab
 ```
 
-Nine MCP tools from https://api.s2ar.dev/mcp: `assert_output` (an output checked against a schema, terms,
+Ten MCP tools from https://api.s2ar.dev/mcp: `watch_x402` (your own x402 endpoint inspected daily, a hosted report and a badge; credits, a key), `assert_output` (an output checked against a schema, terms,
 citations, quotations found in a source; a signed record), `inspect_x402` (an x402 endpoint probed before anyone
 pays it), `score_text` (a text against a form), `certify_image` (an image compressed and proven still readable),
 `sym_map_repo` / `sym_ls_repo` / `sym_read_repo` / `sym_find_repo` / `sym_where_repo` (code from any public repo),

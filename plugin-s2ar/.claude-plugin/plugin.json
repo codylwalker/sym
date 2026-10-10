@@ -1,7 +1,7 @@
 {
   "name": "s2ar",
   "displayName": "s2ar \u2014 paid tools for agents, each with a receipt",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "assert an output (JSON schema, terms, citations, quotations found in a source; a signed record), inspect an x402 endpoint before paying it, grade a text against a form, certify an image \u2014 the hosted s2ar tools as MCP tools, free samples first, a $5 key or USDC per call after. Hooks only remind; every paid call is a tool you see.",
   "author": {
     "name": "s2ar",

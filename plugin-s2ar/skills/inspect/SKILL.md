@@ -29,3 +29,12 @@ and a record (30-day expiry: a probe is a point in time). A `partial` on cosmeti
 description) is fine to pay; a failure on `accepts_wellformed`, `price_reads` or `method_matches` is not.
 
 Never pay an endpoint you have not inspected when the amount is not already known to the user.
+
+## If the endpoint is yours
+
+A seller can have its own endpoint inspected every day: `watch_x402` with `resource` (and `method`) registers it
+under the key on this connection, runs the first probe at once, and answers with the hosted report page
+(`/v1/x402/watch/<host>`) and the badge (`/v1/badge/x402/<host>.svg`). $0.02 a probe in credits, one a day; no key
+means the answer names the sign-in ($0.50 = 25 days) and the packs; `action: "withdraw"` stops it (the records
+stay verifiable), `action: "status"` shows the registrant's own view. Registering is consent to be named for that
+resource's results, passing or failing (charter clause 8). Only register endpoints the user operates.

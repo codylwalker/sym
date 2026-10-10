@@ -27,7 +27,7 @@
       "name": "s2ar",
       "source": "./plugin-s2ar",
       "description": "s2ar: the hosted tools as MCP tools \u2014 assert an output against a schema and a source (a signed record), inspect an x402 endpoint before paying it, grade a text, certify an image, read code from any public repo. Free samples first; a $5 key or USDC per call after. Hooks only remind.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "category": "productivity"
     }
   ]

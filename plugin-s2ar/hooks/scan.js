@@ -1,6 +1,6 @@
 // Pure helpers for the s2ar hooks module (tested by tests/s2ar.test.ts).
 
-const TOOL_RE = /^mcp__s2ar_api__(assert_output|inspect_x402|score_text|certify_image|sym_map_repo|sym_ls_repo|sym_read_repo|sym_find_repo|sym_where_repo|buy_credits)$/
+const TOOL_RE = /^mcp__s2ar_api__(assert_output|inspect_x402|score_text|certify_image|sym_map_repo|sym_ls_repo|sym_read_repo|sym_find_repo|sym_where_repo|watch_x402|buy_credits)$/
 
 // The server's tool name behind a Claude Code tool id, or null.
 export function s2arTool(name) {
